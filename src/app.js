@@ -30,5 +30,8 @@ app.use("/api/lesson", lessonRoutes);
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
+app.get("/hello", (req, res) => {
+  res.send("Hello World");
+});
 
 module.exports = app;
