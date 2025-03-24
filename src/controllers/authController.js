@@ -2,7 +2,6 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const { createCanvas } = require("canvas");
 const cloudinary = require("cloudinary").v2;
-
 const bcrypt = require("bcryptjs");
 require("dotenv").config();
 
@@ -18,18 +17,20 @@ const generateToken = (user) => {
     expiresIn: "7d",
   });
 };
+
 function getInitials(name) {
   const words = name.trim().split(" ");
   return words.length >= 2
     ? words[0][0].toUpperCase() + words[words.length - 1][0].toUpperCase()
     : words[0][0].toUpperCase();
 }
+
 function getRandomColor(email) {
   let hash = 0;
   for (let i = 0; i < email.length; i++) {
     hash = email.charCodeAt(i) + ((hash << 5) - hash);
   }
-  return `hsl(${hash % 360}, 70%, 50%)`; // Màu HSL ngẫu nhiên
+  return `hsl(${hash % 360}, 70%, 50%)`;
 }
 
 async function generateAvatar(name, email) {
@@ -37,68 +38,68 @@ async function generateAvatar(name, email) {
   const canvas = createCanvas(200, 200);
   const ctx = canvas.getContext("2d");
 
-  // Màu nền ngẫu nhiên dựa trên email
   ctx.fillStyle = getRandomColor(email);
   ctx.fillRect(0, 0, 200, 200);
 
-  // Chữ cái đầu
   ctx.fillStyle = "#FFFFFF";
   ctx.font = "bold 100px Arial";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(initials, 100, 110);
 
-  return canvas.toBuffer(); // Trả về ảnh dạng buffer
+  return canvas.toBuffer();
 }
 
-// Đăng ký tài khoản
-// API Đăng ký
+// 🟢 Đăng ký tài khoản
 exports.register = async (req, res) => {
   try {
     const { fullName, email, password, phone } = req.body;
 
-    // Kiểm tra email đã tồn tại chưa
-    const existingUser = await User.findOne({ email });
-    if (existingUser)
+    // Kiểm tra email đã tồn tại
+    if (await User.findOne({ email })) {
       return res.status(400).json({ message: "Email đã được sử dụng" });
+    }
 
-    // Hash mật khẩu trước khi lưu
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Kiểm tra mật khẩu hợp lệ
+    if (!password || password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Mật khẩu phải có ít nhất 6 ký tự" });
+    }
 
-    // Tạo avatar buffer
+    // Tạo avatar buffer và upload lên Cloudinary
     const avatarBuffer = await generateAvatar(fullName, email);
+    const uploadResult = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          { folder: "avatars", public_id: email.replace(/[@.]/g, "_") },
+          (error, result) => (error ? reject(error) : resolve(result))
+        )
+        .end(avatarBuffer);
+    });
 
-    // Upload ảnh lên Cloudinary
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { folder: "avatars", public_id: email.replace(/[@.]/g, "_") },
-      async (error, result) => {
-        if (error) {
-          console.error("Lỗi upload Cloudinary:", error);
-          return res.status(500).json({ message: "Lỗi upload ảnh" });
-        }
+    // Tạo user mới (mật khẩu sẽ được hash tự động trong UserSchema)
+    const user = new User({
+      fullName,
+      email,
+      password, // Không cần tự hash
+      phone,
+      avatar: uploadResult.secure_url,
+    });
 
-        // Tạo user mới với avatar từ Cloudinary
-        const user = new User({
-          fullName,
-          email,
-          password: hashedPassword,
-          phone,
-          avatar: result.secure_url, // Lưu URL ảnh từ Cloudinary
-        });
+    await user.save();
+    const token = generateToken(user);
 
-        await user.save();
-        const token = generateToken(user);
-        res.json({ token, user });
-      }
-    );
-
-    uploadStream.end(avatarBuffer);
+    // Trả về user (loại bỏ password)
+    const { password: _, ...userResponse } = user._doc;
+    res.json({ token, user: userResponse });
   } catch (error) {
-    console.error("Lỗi trong quá trình đăng ký:", error); // Log lỗi chi tiết
+    console.error("Lỗi trong quá trình đăng ký:", error);
     res.status(500).json({ message: "Lỗi server", error });
   }
 };
-// Đăng nhập
+
+// 🟢 Đăng nhập
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -108,21 +109,33 @@ exports.login = async (req, res) => {
     if (!user)
       return res.status(400).json({ message: "Tài khoản không tồn tại" });
 
-    // Kiểm tra mật khẩu
+    // Kiểm tra mật khẩu có tồn tại không
+    if (!user.password) {
+      return res
+        .status(400)
+        .json({ message: "Tài khoản chưa thiết lập mật khẩu" });
+    }
+
+    // Kiểm tra mật khẩu có khớp không
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log(isMatch);
+
     if (!isMatch) return res.status(400).json({ message: "Sai mật khẩu" });
 
     // Tạo token
     const token = generateToken(user);
-    res.json({ token, user });
+
+    // Loại bỏ password khi trả về user
+    const userResponse = { ...user._doc };
+    delete userResponse.password;
+
+    res.json({ token, user: userResponse });
   } catch (error) {
+    console.error("Lỗi đăng nhập:", error);
     res.status(500).json({ message: "Lỗi server", error });
-    console.log(error);
   }
 };
 
-// Quên mật khẩu (Giả sử gửi email xác nhận, nhưng chưa triển khai)
+// 🟢 Quên mật khẩu (Chưa triển khai gửi email)
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -130,9 +143,9 @@ exports.forgotPassword = async (req, res) => {
 
     if (!user) return res.status(400).json({ message: "Email không tồn tại" });
 
-    // Ở đây có thể gửi email đặt lại mật khẩu (chưa triển khai)
     res.json({ message: "Vui lòng kiểm tra email để đặt lại mật khẩu" });
   } catch (error) {
+    console.error("Lỗi quên mật khẩu:", error);
     res.status(500).json({ message: "Lỗi server", error });
   }
 };
