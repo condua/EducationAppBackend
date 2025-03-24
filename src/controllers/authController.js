@@ -1,7 +1,16 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const { createCanvas } = require("canvas");
+const cloudinary = require("cloudinary").v2;
+
 const bcrypt = require("bcryptjs");
 require("dotenv").config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Tạo JWT Token
 const generateToken = (user) => {
@@ -9,8 +18,41 @@ const generateToken = (user) => {
     expiresIn: "7d",
   });
 };
+function getInitials(name) {
+  const words = name.trim().split(" ");
+  return words.length >= 2
+    ? words[0][0].toUpperCase() + words[words.length - 1][0].toUpperCase()
+    : words[0][0].toUpperCase();
+}
+function getRandomColor(email) {
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) {
+    hash = email.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return `hsl(${hash % 360}, 70%, 50%)`; // Màu HSL ngẫu nhiên
+}
+
+async function generateAvatar(name, email) {
+  const initials = getInitials(name);
+  const canvas = createCanvas(200, 200);
+  const ctx = canvas.getContext("2d");
+
+  // Màu nền ngẫu nhiên dựa trên email
+  ctx.fillStyle = getRandomColor(email);
+  ctx.fillRect(0, 0, 200, 200);
+
+  // Chữ cái đầu
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "bold 100px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(initials, 100, 110);
+
+  return canvas.toBuffer(); // Trả về ảnh dạng buffer
+}
 
 // Đăng ký tài khoản
+// API Đăng ký
 exports.register = async (req, res) => {
   try {
     const { fullName, email, password, phone } = req.body;
@@ -20,16 +62,42 @@ exports.register = async (req, res) => {
     if (existingUser)
       return res.status(400).json({ message: "Email đã được sử dụng" });
 
-    // Tạo user mới
-    const user = new User({ fullName, email, password, phone });
-    await user.save();
+    // Hash mật khẩu trước khi lưu
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    res.status(201).json({ message: "Đăng ký thành công" });
+    // Tạo avatar buffer
+    const avatarBuffer = await generateAvatar(fullName, email);
+
+    // Upload ảnh lên Cloudinary
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: "avatars", public_id: email.replace(/[@.]/g, "_") },
+      async (error, result) => {
+        if (error) {
+          console.error("Lỗi upload Cloudinary:", error);
+          return res.status(500).json({ message: "Lỗi upload ảnh" });
+        }
+
+        // Tạo user mới với avatar từ Cloudinary
+        const user = new User({
+          fullName,
+          email,
+          password: hashedPassword,
+          phone,
+          avatar: result.secure_url, // Lưu URL ảnh từ Cloudinary
+        });
+
+        await user.save();
+        const token = generateToken(user);
+        res.json({ token, user });
+      }
+    );
+
+    uploadStream.end(avatarBuffer);
   } catch (error) {
+    console.error("Lỗi trong quá trình đăng ký:", error); // Log lỗi chi tiết
     res.status(500).json({ message: "Lỗi server", error });
   }
 };
-
 // Đăng nhập
 exports.login = async (req, res) => {
   try {
