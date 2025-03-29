@@ -1,6 +1,17 @@
 const User = require("../models/User");
 const Course = require("../models/Course");
 
+// Lấy thông tin người dùng hiện tại
+exports.getCurrentUser = async (req, res) => {
+  try {
+    // `req.user` đã có thông tin từ `authMiddleware`, không cần tìm lại
+    res.json(req.user);
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin user:", error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 // Lấy thông tin user theo ID
 exports.getUserById = async (req, res) => {
   try {
@@ -66,12 +77,10 @@ exports.enrollCourse = async (req, res) => {
     user.enrolledCourses.push(courseId);
     await user.save();
 
-    res
-      .status(200)
-      .json({
-        message: "Đăng ký khóa học thành công!",
-        enrolledCourses: user.enrolledCourses,
-      });
+    res.status(200).json({
+      message: "Đăng ký khóa học thành công!",
+      enrolledCourses: user.enrolledCourses,
+    });
   } catch (error) {
     res.status(500).json({ message: "Lỗi server!", error });
   }
