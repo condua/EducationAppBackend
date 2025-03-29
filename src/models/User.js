@@ -21,12 +21,10 @@ const UserSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: false,
       trim: true,
     },
     avatar: {
       type: String,
-      required: false,
       default: "https://example.com/default-avatar.png",
     },
     role: {
@@ -34,6 +32,12 @@ const UserSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    enrolledCourses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course",
+      },
+    ],
     progress: [
       {
         courseId: {
@@ -43,7 +47,7 @@ const UserSchema = new mongoose.Schema(
         },
         progress: {
           type: Number,
-          default: 0, // Bắt đầu từ 0, tối đa là 100
+          default: 0, // Bắt đầu từ 0%, tối đa 100%
           min: 0,
           max: 100,
         },

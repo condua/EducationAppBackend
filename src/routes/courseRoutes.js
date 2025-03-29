@@ -10,8 +10,9 @@ const {
 const { authMiddleware } = require("../middlewares/authMiddleware"); // Kiểm tra xem middleware này có đúng không
 
 router.post("/", authMiddleware, createCourse);
+// router.get("/", authMiddleware, getCourses);
 router.get("/", getCourses);
-router.get("/:id", getCourseById);
-router.put("/:id", editCourse);
-router.delete(":/id", deleteCourse);
+router.get("/:id", authMiddleware, getCourseById);
+router.put("/:id", authMiddleware, editCourse);
+router.delete("/:id", authMiddleware, deleteCourse);
 module.exports = router;

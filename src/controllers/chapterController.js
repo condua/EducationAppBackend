@@ -18,14 +18,15 @@ exports.createChapter = async (req, res) => {
   }
 };
 
-// Lấy thông tin một Chapter theo id
 exports.getChapter = async (req, res) => {
   try {
     const { id } = req.params;
-    const chapter = await Chapter.findById(id);
+    const chapter = await Chapter.findById(id).populate("lessons"); // Populate lessons
+
     if (!chapter) {
       return res.status(404).json({ message: "Chapter not found" });
     }
+
     res.json(chapter);
   } catch (error) {
     res.status(500).json({ message: "Error fetching chapter", error });

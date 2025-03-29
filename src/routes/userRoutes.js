@@ -3,6 +3,7 @@ const {
   getUserById,
   getAllUsers,
   updateUserById,
+  enrollCourse,
 } = require("../controllers/userController");
 const {
   authMiddleware,
@@ -14,5 +15,5 @@ const router = express.Router();
 router.get("/:id", authMiddleware, getUserById);
 router.get("/", authMiddleware, adminMiddleware, getAllUsers);
 router.put("/:id", authMiddleware, updateUserById);
-
+router.post("/enroll", authMiddleware, enrollCourse);
 module.exports = router;

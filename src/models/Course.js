@@ -12,6 +12,7 @@ const CourseSchema = new mongoose.Schema(
       },
       name: String,
       email: String,
+      avatar: String,
     },
     // Thay vì nhúng ChapterSchema trực tiếp, sử dụng ObjectId tham chiếu đến Chapter
     chapters: [
