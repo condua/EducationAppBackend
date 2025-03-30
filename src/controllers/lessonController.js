@@ -7,7 +7,7 @@ exports.createLesson = async (req, res) => {
     const {
       title,
       chapter,
-      youtubeUrl,
+      lectureUrl,
       pdfLecture,
       pdfExercise,
       content,
@@ -17,7 +17,7 @@ exports.createLesson = async (req, res) => {
     const lesson = await Lesson.create({
       title,
       chapter,
-      youtubeUrl,
+      lectureUrl,
       pdfLecture,
       pdfExercise,
       content,

@@ -7,7 +7,7 @@ const LessonSchema = new mongoose.Schema({
     ref: "Chapter",
     required: true,
   },
-  youtubeUrl: { type: String, required: true },
+  lectureUrl: { type: String, required: true },
   pdfLecture: { type: String },
   pdfExercise: { type: String },
   content: { type: String },
