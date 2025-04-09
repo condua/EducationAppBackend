@@ -9,6 +9,8 @@ const userRoutes = require("./routes/userRoutes.js");
 const coureRoutes = require("./routes/courseRoutes.js");
 const chapterRoutes = require("./routes/chapterRoutes.js");
 const lessonRoutes = require("./routes/lessonRoutes.js");
+const chatRoutes = require("./routes/chatRoutes.js"); // 👈 thêm dòng này
+
 // Kết nối DB
 connectDB();
 
@@ -25,6 +27,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/course", coureRoutes);
 app.use("/api/chapter", chapterRoutes);
 app.use("/api/lesson", lessonRoutes);
+app.use("/api/chat", chatRoutes); // 👈 thêm dòng này
 
 // Route mặc định
 app.get("/", (req, res) => {
