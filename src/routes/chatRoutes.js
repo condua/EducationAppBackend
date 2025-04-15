@@ -19,8 +19,8 @@ router.post("/", async (req, res) => {
         headers: {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "https://educationappbackend-4inf.onrender.com/",
-          "X-Title": "EducationApp",
+          // "HTTP-Referer": "https://educationappbackend-4inf.onrender.com/",
+          // "X-Title": "EducationApp",
         },
         body: JSON.stringify({
           model: "deepseek/deepseek-r1:free",

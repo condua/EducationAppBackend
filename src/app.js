@@ -10,6 +10,8 @@ const coureRoutes = require("./routes/courseRoutes.js");
 const chapterRoutes = require("./routes/chapterRoutes.js");
 const lessonRoutes = require("./routes/lessonRoutes.js");
 const chatRoutes = require("./routes/chatRoutes.js"); // 👈 thêm dòng này
+const blogRoutes = require("./routes/blogRoutes.js"); // 👈 thêm dòng này
+const uploadRoutes = require("./routes/uploadRoutes.js"); // 👈 thêm dòng này
 
 // Kết nối DB
 connectDB();
@@ -28,7 +30,8 @@ app.use("/api/course", coureRoutes);
 app.use("/api/chapter", chapterRoutes);
 app.use("/api/lesson", lessonRoutes);
 app.use("/api/chat", chatRoutes); // 👈 thêm dòng này
-
+app.use("/api/blogs", blogRoutes);
+app.use("/api/upload", uploadRoutes);
 // Route mặc định
 app.get("/", (req, res) => {
   res.send("API is running...");
