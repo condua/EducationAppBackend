@@ -157,7 +157,6 @@ exports.googleLogin = async (req, res) => {
   const { token } = req.body;
 
   try {
-    // Xác minh token với Google
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -169,19 +168,32 @@ exports.googleLogin = async (req, res) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Tạo mật khẩu giả định vì schema yêu cầu
-      const fakePassword = Math.random().toString(36).slice(-8); // random string
+      // 🟡 Nếu Google không có avatar, tự tạo avatar với canvas
+      let avatarUrl = picture;
+      if (!picture) {
+        const avatarBuffer = await generateAvatar(name, email);
+        const uploadResult = await new Promise((resolve, reject) => {
+          cloudinary.uploader
+            .upload_stream(
+              { folder: "avatars", public_id: email.replace(/[@.]/g, "_") },
+              (error, result) => (error ? reject(error) : resolve(result))
+            )
+            .end(avatarBuffer);
+        });
+        avatarUrl = uploadResult.secure_url;
+      }
+
+      const fakePassword = Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(fakePassword, 10);
 
       user = await User.create({
         fullName: name,
         email,
         password: hashedPassword,
-        avatar: picture,
+        avatar: avatarUrl,
       });
     }
 
-    // Tạo JWT token (nếu bạn dùng)
     const accessToken = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
