@@ -3,6 +3,9 @@ const jwt = require("jsonwebtoken");
 const { createCanvas } = require("canvas");
 const cloudinary = require("cloudinary").v2;
 const bcrypt = require("bcryptjs");
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 require("dotenv").config();
 
 cloudinary.config({
@@ -147,5 +150,57 @@ exports.forgotPassword = async (req, res) => {
   } catch (error) {
     console.error("Lỗi quên mật khẩu:", error);
     res.status(500).json({ message: "Lỗi server", error });
+  }
+};
+
+exports.googleLogin = async (req, res) => {
+  const { token } = req.body;
+
+  try {
+    // Xác minh token với Google
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Tạo mật khẩu giả định vì schema yêu cầu
+      const fakePassword = Math.random().toString(36).slice(-8); // random string
+      const hashedPassword = await bcrypt.hash(fakePassword, 10);
+
+      user = await User.create({
+        fullName: name,
+        email,
+        password: hashedPassword,
+        avatar: picture,
+      });
+    }
+
+    // Tạo JWT token (nếu bạn dùng)
+    const accessToken = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(200).json({
+      message: "Login thành công",
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        avatar: user.avatar,
+        role: user.role,
+      },
+      accessToken,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(401).json({ error: "Google token không hợp lệ" });
   }
 };

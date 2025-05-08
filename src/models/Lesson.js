@@ -11,6 +11,13 @@ const LessonSchema = new mongoose.Schema({
   pdfLecture: { type: String },
   pdfExercise: { type: String },
   content: { type: String },
+
+  // Tham chiếu đến Quiz
+  quiz: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Quiz",
+    required: false, // Không phải bài học nào cũng có quiz
+  },
 });
 
 module.exports = mongoose.model("Lesson", LessonSchema);

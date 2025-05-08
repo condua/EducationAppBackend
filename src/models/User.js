@@ -27,6 +27,18 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "https://example.com/default-avatar.png",
     },
+    birthDate: {
+      type: Date,
+      default: Date.now,
+    },
+    gender: {
+      type: String,
+      require: false,
+    },
+    address: {
+      type: String,
+      require: false,
+    },
     role: {
       type: String,
       enum: ["user", "admin"],

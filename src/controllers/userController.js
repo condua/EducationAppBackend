@@ -37,10 +37,10 @@ exports.getAllUsers = async (req, res) => {
 // Cập nhật thông tin user
 exports.updateUserById = async (req, res) => {
   try {
-    const { fullName, phone, avatar } = req.body;
+    const { fullName, phone, avatar, gender, address, birthDate } = req.body;
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      { fullName, phone, avatar },
+      { fullName, phone, avatar, gender, address, birthDate },
       { new: true }
     ).select("-password");
 

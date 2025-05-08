@@ -13,7 +13,9 @@ exports.createLesson = async (req, res) => {
       content,
       time,
       locked,
+      quiz, // ✅ Thêm quiz ở đây (nếu có)
     } = req.body;
+
     const lesson = await Lesson.create({
       title,
       chapter,
@@ -23,6 +25,7 @@ exports.createLesson = async (req, res) => {
       content,
       time,
       locked,
+      quiz, // ✅ Lưu quiz vào lesson
     });
 
     // Cập nhật Chapter: thêm ID của lesson vừa tạo vào mảng lessons
@@ -40,7 +43,10 @@ exports.createLesson = async (req, res) => {
 exports.getLesson = async (req, res) => {
   try {
     const { id } = req.params;
-    const lesson = await Lesson.findById(id);
+    const lesson = await Lesson.findById(id)
+      .populate("quiz") // ✅ Populate luôn quiz nếu có
+      .exec();
+
     if (!lesson) {
       return res.status(404).json({ message: "Lesson not found" });
     }
@@ -57,9 +63,9 @@ exports.getAllLessons = async (req, res) => {
     const { chapterId } = req.query;
     let lessons;
     if (chapterId) {
-      lessons = await Lesson.find({ chapter: chapterId });
+      lessons = await Lesson.find({ chapter: chapterId }).populate("quiz");
     } else {
-      lessons = await Lesson.find();
+      lessons = await Lesson.find().populate("quiz");
     }
     res.json(lessons);
   } catch (error) {
@@ -71,7 +77,10 @@ exports.getAllLessons = async (req, res) => {
 exports.updateLesson = async (req, res) => {
   try {
     const { id } = req.params;
-    const lesson = await Lesson.findByIdAndUpdate(id, req.body, { new: true });
+    const lesson = await Lesson.findByIdAndUpdate(id, req.body, {
+      new: true,
+    }).populate("quiz");
+
     if (!lesson) {
       return res.status(404).json({ message: "Lesson not found" });
     }
