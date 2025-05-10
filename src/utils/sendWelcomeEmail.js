@@ -74,7 +74,7 @@ const sendWelcomeEmail = async (email, fullName) => {
                     <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 5px;">
                       <tr>
                         <td style="vertical-align: middle; padding-right: 5px;">
-                          <span style="font-size: 16px; color: red;">✉</span>
+                          <span style="font-size: 18px; color: red;">✉</span>
                         </td>
                         <td style="vertical-align: middle;">
                           <a href="mailto:phanhoangphuc0311@gmail.com" style="font-size:12px; color:#00264d; text-decoration:none;">phanhoangphuc0311@gmail.com</a>
@@ -117,7 +117,7 @@ const sendWelcomeEmail = async (email, fullName) => {
               <a href="https://www.linkedin.com/company/50290243" target="_blank" style="margin: 0 10px; text-decoration: none;">
                 <img src="https://cdn-icons-png.flaticon.com/24/145/145807.png" alt="LinkedIn" style="vertical-align: middle;">
               </a>
-              <p style="font-size: 16px; margin-top: 10px;">© ${new Date().getFullYear()} MLPA Edutech. All rights reserved.</p>
+              <p style="font-size: 14px; margin-top: 10px;">© ${new Date().getFullYear()} MLPA Edutech. All rights reserved.</p>
             </td>
           </tr>
 
