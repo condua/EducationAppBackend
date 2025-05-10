@@ -4,7 +4,7 @@ require("dotenv").config();
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   auth: {
-    user: "noreply.ewallet.hcmut@gmail.com",
+    user: "noreply.mlpa.edu@gmail.com",
     pass: process.env.GMAIL_PASSWORD,
   },
 });
@@ -13,7 +13,7 @@ const sendWelcomeEmail = async (email, fullName) => {
     const mailOptions = {
       from: {
         name: "MLPA",
-        address: "noreply.ewallet.hcmut@gmail.com",
+        address: "noreply.mlpa.edu@gmail.com",
       },
       to: email,
       subject: `Cảm ơn ${fullName} đã đăng ký thành công tài khoản tại Giáo dục và Công nghệ MLPA`,
