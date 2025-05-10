@@ -34,12 +34,12 @@ const sendWelcomeEmail = async (email, fullName) => {
 <div style="background: linear-gradient(135deg, #66c2ff, #005792, #00264d); padding: 20px; display: flex; justify-content: space-between; align-items: center; color: white;">
   
   <!-- Logo chiếm 50% -->
-  <div style="width: 50%;">
+  <div style="width: 30%; display: flex; align-items: center;">
     <img src="https://res.cloudinary.com/dy9yts4fa/image/upload/v1746871241/logo/logo_wzjqfj.png" alt="MLPA Logo" style="height: 40px;">
   </div>
 
   <!-- Thông tin liên hệ chiếm 50% -->
-  <div style="width: 50%; text-align: right; font-size: 13px;">
+  <div style="width: 70%; text-align: right; font-size: 13px;">
     <div>📞 (+84) 399915548</div>
     <div>📧 <a href="mailto:phanhoangphuc0311@gmail.com" style="color: #f7c800; text-decoration: none;">phanhoangphuc0311@gmail.com</a></div>
   </div>
