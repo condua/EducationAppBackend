@@ -192,20 +192,21 @@ exports.googleLogin = async (req, res) => {
 
       const fakePassword = Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(fakePassword, 10);
-      // ✅ Gửi email chào mừng chỉ khi đăng nhập lần đầu
-      try {
-        await sendWelcomeEmail({ email, fullName: name });
-        console.log("Đã gửi email chào mừng");
-      } catch (emailErr) {
-        console.error("Gửi email thất bại:", emailErr.message);
-        // Có thể bỏ qua lỗi này nếu không quan trọng
-      }
+
       user = await User.create({
         fullName: name,
         email,
         password: hashedPassword,
         avatar: avatarUrl,
       });
+      // ✅ Gửi email chào mừng chỉ khi đăng nhập lần đầu
+      try {
+        await sendWelcomeEmail(user.email, user.fullName);
+        console.log("Đã gửi email chào mừng");
+      } catch (emailErr) {
+        console.error("Gửi email thất bại:", emailErr.message);
+        // Có thể bỏ qua lỗi này nếu không quan trọng
+      }
     }
 
     const accessToken = jwt.sign(
