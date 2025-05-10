@@ -77,9 +77,9 @@ const sendWelcomeEmail = async (email, fullName) => {
   style="width: 60px; height: 60px; border-radius: 50%; margin-right: 15px; object-fit: cover; object-position: center;">
 
           <div>
-            <div style="font-weight: bold; font-size: 16px;">Phan Hoàng Phúc</div>
-            <div style="font-size: 14px; color: #555;">Nhà sáng lập MLPA</div>
-            <a href="mailto:phanhoangphuc0311@gmail.com" style="font-size: 14px; color: #00264d; text-decoration: none;">phanhoangphuc0311@gmail.com</a>
+            <div style="font-weight: bold; font-size: 14px;">Phan Hoàng Phúc</div>
+            <div style="font-size: 12px; color: #555;">Nhà sáng lập MLPA</div>
+            <a href="mailto:phanhoangphuc0311@gmail.com" style="font-size: 12px; color: #00264d; text-decoration: none;">phanhoangphuc0311@gmail.com</a>
           </div>
         </div>
 
