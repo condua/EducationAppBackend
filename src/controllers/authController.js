@@ -201,7 +201,7 @@ exports.googleLogin = async (req, res) => {
       });
       // ✅ Gửi email chào mừng chỉ khi đăng nhập lần đầu
       try {
-        await sendWelcomeEmail(email, name);
+        await sendWelcomeEmail({ email, fullName: name });
         console.log("Đã gửi email chào mừng");
       } catch (emailErr) {
         console.error("Gửi email thất bại:", emailErr.message);
