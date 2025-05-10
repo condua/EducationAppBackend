@@ -70,11 +70,29 @@ const sendWelcomeEmail = async (email, fullName) => {
                   <td style="padding-left:15px; font-size:13px; color:#333;">
                     <div style="font-weight:bold; margin-bottom: 2px">Phan Hoàng Phúc</div>
                     <div style="font-size:12px; color:#555; margin-bottom: 2px">Nhà sáng lập MLPA</div>
-                    <a href="mailto:phanhoangphuc0311@gmail.com" style="font-size:12px; color:#00264d; text-decoration:none; display: flex; align-items: center; gap: 5px;"><span style="font-size: 20px; color: red">✉</span> phanhoangphuc0311@gmail.com</a>
-                    <div style="display: flex; align-items: center; gap: 5px; margin-top: 2px;">
-                      <img src="https://res.cloudinary.com/dy9yts4fa/image/upload/v1746886062/logo/zalo-removebg-preview_swfjsm.png" alt="Zalo" style="width: 20px; vertical-align: middle;" />
-                      <a href="https://zalo.me/84399915548" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: #00264d;">0399915548</a>
-                    </div>
+                    <!-- Email -->
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 5px;">
+                      <tr>
+                        <td style="vertical-align: middle; padding-right: 5px;">
+                          <span style="font-size: 16px; color: red;">✉</span>
+                        </td>
+                        <td style="vertical-align: middle;">
+                          <a href="mailto:phanhoangphuc0311@gmail.com" style="font-size:12px; color:#00264d; text-decoration:none;">phanhoangphuc0311@gmail.com</a>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Zalo -->
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 5px;">
+                      <tr>
+                        <td style="vertical-align: middle; padding-right: 5px;">
+                          <img src="https://res.cloudinary.com/dy9yts4fa/image/upload/v1746886062/logo/zalo-removebg-preview_swfjsm.png" alt="Zalo" style="width: 18px; height: 18px; display: block;">
+                        </td>
+                        <td style="vertical-align: middle;">
+                          <a href="https://zalo.me/84399915548" target="_blank" rel="noopener noreferrer" style="font-size:12px; color:#00264d; text-decoration: none;">0399915548</a>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
               </table>
