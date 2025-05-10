@@ -5,7 +5,7 @@ const cloudinary = require("cloudinary").v2;
 const bcrypt = require("bcryptjs");
 const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
+const sendWelcomeEmail = require("../utils/sendWelcomeEmail");
 require("dotenv").config();
 
 cloudinary.config({
@@ -92,7 +92,14 @@ exports.register = async (req, res) => {
 
     await user.save();
     const token = generateToken(user);
-
+    // ✅ Gửi email chào mừng
+    try {
+      await sendWelcomeEmail(email, fullName);
+      console.log("Đã gửi email chào mừng");
+    } catch (emailErr) {
+      console.error("Gửi email thất bại:", emailErr.message);
+      // Có thể bỏ qua lỗi này nếu không quan trọng
+    }
     // Trả về user (loại bỏ password)
     const { password: _, ...userResponse } = user._doc;
     res.json({ token, user: userResponse });
@@ -192,6 +199,14 @@ exports.googleLogin = async (req, res) => {
         password: hashedPassword,
         avatar: avatarUrl,
       });
+      // ✅ Gửi email chào mừng chỉ khi đăng nhập lần đầu
+      try {
+        await sendWelcomeEmail(email, name);
+        console.log("Đã gửi email chào mừng");
+      } catch (emailErr) {
+        console.error("Gửi email thất bại:", emailErr.message);
+        // Có thể bỏ qua lỗi này nếu không quan trọng
+      }
     }
 
     const accessToken = jwt.sign(
