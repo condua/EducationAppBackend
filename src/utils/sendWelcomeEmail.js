@@ -53,7 +53,7 @@ const sendWelcomeEmail = async (email, fullName) => {
             <td style="padding: 30px;">
               <h2 style="margin-top:0; font-size:20px; color:#00264d;">Bạn đã đăng ký tài khoản thành công tại MLPA. <span style="color:#f7c800;">🌟</span></h2>
               <p style="font-size:16px; color:#333;">Xin chào <strong>${fullName}</strong>,</p>
-              <p style="font-size:15px; color:#333;">Cảm ơn bạn đã tin tưởng và lựa chọn <strong>Công nghệ và Giáo dục MLPA</strong> là người đồng hành trên hành trình học tập của mình. Chúng tôi vô cùng trân trọng sự quan tâm và mong rằng bạn sẽ có những trải nghiệm học tập hiệu quả, truyền cảm hứng và đáng nhớ tại MLPA.</p>
+              <p style="font-size:15px; color:#333;">Cảm ơn bạn đã tin tưởng và lựa chọn <strong>Công nghệ và Giáo dục MLPA</strong> là người đồng hành trên hành trình học tập của mình. Chúng tôi vô cùng trân trọng sự quan tâm và mong rằng bạn sẽ có những trải nghiệm học tập hiệu quả, truyền cảm hứng và đáng nhớ tại <strong>MLPA</strong>.</p>
               <p style="font-size:15px; color:#333;">Nếu bạn có bất kỳ thắc mắc nào, đừng ngần ngại liên hệ với chúng tôi. Chúng tôi luôn sẵn sàng hỗ trợ bạn.</p>
               <p style="font-size:14px; color:#333;">Trân trọng,<br><strong>Đội ngũ MLPA</strong></p>
             </td>
