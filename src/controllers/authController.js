@@ -192,13 +192,6 @@ exports.googleLogin = async (req, res) => {
 
       const fakePassword = Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(fakePassword, 10);
-
-      user = await User.create({
-        fullName: name,
-        email,
-        password: hashedPassword,
-        avatar: avatarUrl,
-      });
       // ✅ Gửi email chào mừng chỉ khi đăng nhập lần đầu
       try {
         await sendWelcomeEmail({ email, fullName: name });
@@ -207,6 +200,12 @@ exports.googleLogin = async (req, res) => {
         console.error("Gửi email thất bại:", emailErr.message);
         // Có thể bỏ qua lỗi này nếu không quan trọng
       }
+      user = await User.create({
+        fullName: name,
+        email,
+        password: hashedPassword,
+        avatar: avatarUrl,
+      });
     }
 
     const accessToken = jwt.sign(
