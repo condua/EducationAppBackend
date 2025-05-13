@@ -34,9 +34,9 @@ app.use("/api/chat", chatRoutes); // 👈 thêm dòng này
 app.use("/api/blogs", blogRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/quiz", quizRoutes);
-app.use(
-  require("prerender-node").set("prerenderToken", "4NvFjfBFr0zgGGpIo5RF")
-);
+// app.use(
+//   // require("prerender-node").set("prerenderToken", "4NvFjfBFr0zgGGpIo5RF")
+// );
 
 // Route mặc định
 app.get("/", (req, res) => {
