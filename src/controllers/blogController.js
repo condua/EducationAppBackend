@@ -98,12 +98,8 @@ exports.shareBlog = async (req, res) => {
           )}..." />
           <meta property="og:image" content="${blog.imageTitle}" />
           <meta property="og:type" content="article" />
-          <meta property="og:url" content="https://mlpa.site/blog/${
-            blog._id
-          }" />
-          <meta http-equiv="refresh" content="0; url=https://mlpa.site/blog/${
-            blog._id
-          }" />
+          
+
           <title>${blog.title}</title>
         </head>
         <body>
