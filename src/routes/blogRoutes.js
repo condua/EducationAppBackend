@@ -8,5 +8,6 @@ router.get("/", blogController.getAllBlogs);
 router.get("/:id", blogController.getBlogById);
 router.put("/:id", blogController.updateBlog);
 router.delete("/:id", blogController.deleteBlog);
+router.get("/share/:id", blogController.shareBlog); // Get blog by ID for sharing
 
 module.exports = router;

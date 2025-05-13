@@ -77,3 +77,42 @@ exports.deleteBlog = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+// SHARE Blog (Open Graph for Facebook)
+exports.shareBlog = async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      return res.status(404).send("Blog not found");
+    }
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta property="og:title" content="${blog.title}" />
+          <meta property="og:description" content="${blog.content.slice(
+            0,
+            100
+          )}..." />
+          <meta property="og:image" content="${blog.imageTitle}" />
+          <meta property="og:type" content="article" />
+          <meta property="og:url" content="https://mlpa.site/blog/${
+            blog._id
+          }" />
+          <meta http-equiv="refresh" content="0; url=https://mlpa.site/blog/${
+            blog._id
+          }" />
+          <title>${blog.title}</title>
+        </head>
+        <body>
+          <p>Redirecting to blog...</p>
+        </body>
+      </html>
+    `;
+    res.send(html);
+  } catch (error) {
+    res.status(500).send("Server Error");
+  }
+};
