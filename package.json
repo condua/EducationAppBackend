@@ -28,6 +28,7 @@
     "nodemailer": "^6.10.1",
     "openai": "^4.93.0",
     "path": "^0.12.7",
+    "prerender-node": "^3.8.0",
     "scripts": "^0.1.0"
   },
   "devDependencies": {
