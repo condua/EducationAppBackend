@@ -69,9 +69,9 @@ exports.getBlogById = async (req, res) => {
             <meta charset="UTF-8">
             <!-- Open Graph Meta Tags -->
             <meta property="og:title" content="${blog.title}" />
-            <meta property="og:description" content="${blog.description}" />
+            <meta property="og:description" content="${blog.content}" />
             <meta property="og:image" content="${blog.imageUrl}" />
-            <meta property="og:url" content="https://yourdomain.com/blog/${req.params.id}" />
+            <meta property="og:url" content="https://mlpa.site/blog/${req.params.id}" />
             <meta property="og:type" content="article" />
             <title>${blog.title}</title>
           </head>
