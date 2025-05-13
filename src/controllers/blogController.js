@@ -34,62 +34,14 @@ exports.getAllBlogs = async (req, res) => {
   }
 };
 
-// // READ one Blog
-// exports.getBlogById = async (req, res) => {
-//   try {
-//     const blog = await Blog.findById(req.params.id);
-//     if (!blog) {
-//       return res.status(404).json({ message: "Blog not found" });
-//     }
-//     res.status(200).json(blog);
-//   } catch (error) {
-//     res.status(400).json({ message: error.message });
-//   }
-// };
-// READ one Blog and render HTML with meta tags, or return JSON
+// READ one Blog
 exports.getBlogById = async (req, res) => {
   try {
-    // Lấy bài blog từ cơ sở dữ liệu
     const blog = await Blog.findById(req.params.id);
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
-
-    // Kiểm tra xem yêu cầu có phải từ trình duyệt (hiển thị HTML) hay không
-    const isBotRequest =
-      req.headers["user-agent"] &&
-      req.headers["user-agent"].toLowerCase().includes("facebook");
-
-    if (isBotRequest) {
-      // Nếu là yêu cầu từ Facebook bot, trả về HTML với meta tags
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <!-- Open Graph Meta Tags -->
-            <meta property="og:title" content="${blog.title}" />
-            <meta property="og:description" content="${blog.content}" />
-            <meta property="og:image" content="${blog.imageUrl}" />
-            <meta property="og:url" content="https://mlpa.site/blog/${req.params.id}" />
-            <meta property="og:type" content="article" />
-            <title>${blog.title}</title>
-          </head>
-          <body>
-            <div id="root">
-              <h1>${blog.title}</h1>
-              <p>${blog.content}</p>
-            </div>
-          </body>
-        </html>
-      `;
-
-      // Trả về HTML đã render
-      return res.status(200).send(htmlContent);
-    } else {
-      // Nếu không phải yêu cầu từ Facebook bot, trả về JSON
-      return res.status(200).json(blog);
-    }
+    res.status(200).json(blog);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
