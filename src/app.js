@@ -13,7 +13,8 @@ const chatRoutes = require("./routes/chatRoutes.js"); // 👈 thêm dòng này
 const blogRoutes = require("./routes/blogRoutes.js"); // 👈 thêm dòng này
 const uploadRoutes = require("./routes/uploadRoutes.js"); // 👈 thêm dòng này
 const quizRoutes = require("./routes/quizRoutes.js"); // 👈 thêm dòng này
-
+const testRoutes = require("./routes/testRoutes.js"); // 👈 thêm dòng này
+const testAttemptRoutes = require("./routes/testAttemptRoutes.js"); // 👈 thêm dòng này
 // Kết nối DB
 connectDB();
 
@@ -34,8 +35,10 @@ app.use("/api/chat", chatRoutes); // 👈 thêm dòng này
 app.use("/api/blogs", blogRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/quiz", quizRoutes);
+app.use("/api/tests", testRoutes); // 👈 thêm dòng này
+app.use("/api/attempts", testAttemptRoutes); // 👈 thêm dòng này
 // app.use(
-//   // require("prerender-node").set("prerenderToken", "4NvFjfBFr0zgGGpIo5RF")
+//   require("prerender-node").set("prerenderToken", process.env.PRERENDER_TOKEN)
 // );
 
 // Route mặc định

@@ -47,13 +47,22 @@ exports.getCourseById = async (req, res) => {
     const userId = req.user.id; // Lấy userId từ token
     const courseId = req.params.id;
 
-    // Kiểm tra xem khóa học có tồn tại không và populate chapters + lessons
-    const course = await Course.findById(courseId).populate({
-      path: "chapters",
-      populate: {
-        path: "lessons",
-      },
-    });
+    // --- ĐÂY LÀ PHẦN THAY ĐỔI ---
+    // Kiểm tra xem khóa học có tồn tại không và populate chapters, lessons, và tests
+    const course = await Course.findById(courseId)
+      .populate({
+        path: "chapters",
+        populate: {
+          path: "lessons",
+        },
+      })
+      .populate({
+        path: "tests",
+        // (Tùy chọn nhưng khuyến khích) Ẩn đáp án đúng khi populate
+        select:
+          "-questionGroups.group_questions.correctAnswer -questionGroups.group_questions.explanation",
+      });
+    // --------------------------------
 
     if (!course) {
       return res.status(404).json({ message: "Không tìm thấy khóa học" });

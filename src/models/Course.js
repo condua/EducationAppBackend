@@ -1,3 +1,4 @@
+// models/Course.js
 const mongoose = require("mongoose");
 
 const CourseSchema = new mongoose.Schema(
@@ -14,13 +15,23 @@ const CourseSchema = new mongoose.Schema(
       email: String,
       avatar: String,
     },
-    // Thay vì nhúng ChapterSchema trực tiếp, sử dụng ObjectId tham chiếu đến Chapter
     chapters: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Chapter",
       },
     ],
+
+    // --- TRƯỜNG MỚI ĐƯỢC THÊM VÀO ---
+    // Mảng chứa các ID tham chiếu đến các bài kiểm tra của khóa học
+    tests: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Test", // Tham chiếu đến model 'Test' vừa tạo
+      },
+    ],
+    // ------------------------------------
+
     category: String,
     price: { type: String, default: "Free" },
     rating: { type: Number, default: 0 },
