@@ -8,6 +8,7 @@ const {
   updateTest,
   deleteTest,
   getTestForTaking,
+  getTestWithAnswers,
 } = require("../controllers/testController");
 
 // Import middleware
@@ -34,5 +35,7 @@ router.put("/:testId", [authMiddleware], updateTest);
 // DELETE /api/tests/:testId - Xóa một bài test
 // -> Controller 'deleteTest' sẽ lấy 'testId' từ params
 router.delete("/:testId", [authMiddleware], deleteTest);
+
+router.get("/:testId/full", authMiddleware, getTestWithAnswers);
 
 module.exports = router;

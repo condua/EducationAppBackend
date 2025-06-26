@@ -107,3 +107,36 @@ exports.getTestForTaking = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
+
+// ✅ CONTROLLER MỚI ĐƯỢC THÊM VÀO ĐÂY
+/**
+ * Lấy toàn bộ chi tiết bài test BAO GỒM CẢ ĐÁP ÁN.
+ * Dùng cho trang hiển thị kết quả sau khi làm bài.
+ */
+exports.getTestWithAnswers = async (req, res) => {
+  try {
+    const { testId } = req.params;
+
+    // Lấy bài test với đầy đủ các trường, không dùng .select() để loại bỏ
+    const test = await Test.findById(testId);
+
+    if (!test) {
+      return res.status(404).json({ message: "Không tìm thấy bài kiểm tra." });
+    }
+
+    /**
+     * LƯU Ý BẢO MẬT:
+     * Trong một ứng dụng thực tế, bạn nên thêm logic kiểm tra ở đây.
+     * Ví dụ: chỉ cho phép người dùng đã làm bài test này (có một bản ghi TestAttempt)
+     * hoặc admin mới có quyền truy cập vào endpoint này.
+     * * const hasAttempted = await TestAttempt.findOne({ user: req.user.id, test: testId });
+     * if (!hasAttempted && req.user.role !== 'admin') {
+     * return res.status(403).json({ message: "Bạn không có quyền xem đáp án." });
+     * }
+     */
+
+    res.status(200).json(test);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
