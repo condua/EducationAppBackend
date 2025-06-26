@@ -8,7 +8,7 @@ exports.submitTest = async (req, res) => {
   try {
     const { testId } = req.params;
     const userId = req.user.id;
-    const { userAnswers } = req.body;
+    const { userAnswers, startedAt } = req.body;
 
     // 1. Lấy bài test gốc (không đổi)
     const originalTest = await Test.findById(testId);
