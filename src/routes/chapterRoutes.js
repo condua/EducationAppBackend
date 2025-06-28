@@ -7,10 +7,13 @@ const {
   updateChapter,
   deleteChapter,
 } = require("../controllers/chapterController");
-const { authMiddleware } = require("../middlewares/authMiddleware");
+const {
+  authMiddleware,
+  adminMiddleware,
+} = require("../middlewares/authMiddleware");
 
 // Tạo mới Chapter
-router.post("/", authMiddleware, createChapter);
+router.post("/", authMiddleware, adminMiddleware, createChapter);
 
 // Lấy danh sách tất cả các Chapter (có thể lọc theo courseId qua query nếu cần)
 router.get("/", authMiddleware, getAllChapters);
@@ -19,9 +22,9 @@ router.get("/", authMiddleware, getAllChapters);
 router.get("/:id", authMiddleware, getChapter);
 
 // Cập nhật Chapter theo id
-router.put("/:id", authMiddleware, updateChapter);
+router.put("/:id", authMiddleware, adminMiddleware, updateChapter);
 
 // Xóa Chapter theo id
-router.delete("/:id", authMiddleware, deleteChapter);
+router.delete("/:id", authMiddleware, adminMiddleware, deleteChapter);
 
 module.exports = router;

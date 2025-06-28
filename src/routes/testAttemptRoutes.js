@@ -39,7 +39,7 @@ router.get(
 router.get(
   "/course/:courseId/test/:testId",
   authMiddleware,
-  // adminMiddleware, // Chỉ cho phép admin xem thống kê
+  adminMiddleware, // Chỉ cho phép admin xem thống kê
   getAttemptsForTestInCourse
 );
 

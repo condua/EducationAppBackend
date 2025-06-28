@@ -7,12 +7,15 @@ const {
   editCourse,
   deleteCourse,
 } = require("../controllers/courseController");
-const { authMiddleware } = require("../middlewares/authMiddleware"); // Kiểm tra xem middleware này có đúng không
+const {
+  authMiddleware,
+  adminMiddleware,
+} = require("../middlewares/authMiddleware"); // Kiểm tra xem middleware này có đúng không
 
-router.post("/", authMiddleware, createCourse);
+router.post("/", authMiddleware, adminMiddleware, createCourse);
 // router.get("/", authMiddleware, getCourses);
 router.get("/", getCourses);
 router.get("/:id", authMiddleware, getCourseById);
-router.put("/:id", authMiddleware, editCourse);
+router.put("/:id", authMiddleware, adminMiddleware, editCourse);
 router.delete("/:id", authMiddleware, deleteCourse);
 module.exports = router;

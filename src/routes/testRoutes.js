@@ -12,11 +12,18 @@ const {
 } = require("../controllers/testController");
 
 // Import middleware
-const { authMiddleware } = require("../middlewares/authMiddleware"); // Giả sử có cả adminMiddleware
+const {
+  authMiddleware,
+  adminMiddleware,
+} = require("../middlewares/authMiddleware"); // Giả sử có cả adminMiddleware
 
 // POST /api/tests/ - Tạo bài kiểm tra mới
 // (Controller 'createTest' sẽ lấy courseId từ req.body)
-router.post("/by-course/:courseId", [authMiddleware], createTest);
+router.post(
+  "/by-course/:courseId",
+  [authMiddleware, adminMiddleware],
+  createTest
+);
 
 // GET /api/tests/by-course/:courseId - Lấy danh sách test của một khóa học
 // -> Controller 'getTestsByCourse' sẽ lấy 'courseId' từ params
@@ -30,11 +37,11 @@ router.get("/:testId", authMiddleware, getTestForTaking);
 
 // PUT /api/tests/:testId - Cập nhật một bài test
 // -> Controller 'updateTest' sẽ lấy 'testId' từ params
-router.put("/:testId", [authMiddleware], updateTest);
+router.put("/:testId", [authMiddleware, adminMiddleware], updateTest);
 
 // DELETE /api/tests/:testId - Xóa một bài test
 // -> Controller 'deleteTest' sẽ lấy 'testId' từ params
-router.delete("/:testId", [authMiddleware], deleteTest);
+router.delete("/:testId", [authMiddleware, adminMiddleware], deleteTest);
 
 router.get("/:testId/full", authMiddleware, getTestWithAnswers);
 

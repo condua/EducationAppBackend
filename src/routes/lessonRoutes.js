@@ -7,10 +7,13 @@ const {
   updateLesson,
   deleteLesson,
 } = require("../controllers/lessonController");
-const { authMiddleware } = require("../middlewares/authMiddleware");
+const {
+  authMiddleware,
+  adminMiddleware,
+} = require("../middlewares/authMiddleware");
 
 // Tạo mới Lesson
-router.post("/", authMiddleware, createLesson);
+router.post("/", authMiddleware, adminMiddleware, createLesson);
 
 // Lấy danh sách tất cả Lesson (có thể lọc theo chapter nếu cần)
 router.get("/", authMiddleware, getAllLessons);
@@ -19,9 +22,9 @@ router.get("/", authMiddleware, getAllLessons);
 router.get("/:id", authMiddleware, getLesson);
 
 // Cập nhật thông tin Lesson theo id
-router.put("/:id", authMiddleware, updateLesson);
+router.put("/:id", authMiddleware, adminMiddleware, updateLesson);
 
 // Xóa Lesson theo id
-router.delete("/:id", authMiddleware, deleteLesson);
+router.delete("/:id", authMiddleware, adminMiddleware, deleteLesson);
 
 module.exports = router;
