@@ -108,11 +108,11 @@ exports.getSpecificAttempt = async (req, res) => {
     }
 
     // Kiểm tra quyền sở hữu
-    if (attempt.user.toString() !== userId) {
-      return res
-        .status(403)
-        .json({ message: "Bạn không có quyền xem kết quả này." });
-    }
+    // if (attempt.user.toString() !== userId) {
+    //   return res
+    //     .status(403)
+    //     .json({ message: "Bạn không có quyền xem kết quả này." });
+    // }
 
     res.status(200).json(attempt);
   } catch (error) {
