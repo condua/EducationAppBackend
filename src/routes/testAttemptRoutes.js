@@ -8,10 +8,14 @@ const {
   getSpecificAttempt,
   getAttemptsByTest,
   getMyAttemptsForTest,
+  getAttemptsForTestInCourse,
 } = require("../controllers/testAttemptController");
 
 // Import middleware xác thực
-const { authMiddleware } = require("../middlewares/authMiddleware"); // Giả sử có cả adminMiddleware
+const {
+  authMiddleware,
+  adminMiddleware,
+} = require("../middlewares/authMiddleware"); // Giả sử có cả adminMiddleware
 
 // POST /api/attempts/submit/:testId
 // Nộp bài làm của một bài test.
@@ -31,6 +35,12 @@ router.get(
   "/my-attempts-for-test/:testId",
   authMiddleware,
   getMyAttemptsForTest
+);
+router.get(
+  "/course/:courseId/test/:testId",
+  authMiddleware,
+  // adminMiddleware, // Chỉ cho phép admin xem thống kê
+  getAttemptsForTestInCourse
 );
 
 module.exports = router;

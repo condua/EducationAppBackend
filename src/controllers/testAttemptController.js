@@ -161,3 +161,43 @@ exports.getMyAttemptsForTest = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
+
+exports.getAttemptsForTestInCourse = async (req, res) => {
+  try {
+    const { courseId, testId } = req.params;
+
+    // 1. Tìm tất cả các attempts khớp với courseId và testId
+    const attempts = await TestAttempt.find({
+      course: courseId,
+      test: testId,
+    })
+      // THAY ĐỔI 1: Populate để lấy 'fullName' và 'email' từ model User.
+      .populate("user", "fullName email")
+      // THAY ĐỔI 2: Bỏ 'userName' và chỉ chọn các trường cần thiết.
+      .select("user score userAnswers startedAt")
+      // 4. Sắp xếp theo điểm giảm dần, sau đó theo thời gian hoàn thành tăng dần
+      .sort({ score: -1, completedAt: 1 })
+      // 5. Sử dụng .lean() để tăng tốc độ truy vấn vì chỉ cần đọc dữ liệu
+      .lean();
+
+    // THAY ĐỔI 3: Định dạng lại dữ liệu trả về để có 'email' thay vì 'userName'
+    const formattedAttempts = attempts.map((attempt) => {
+      return {
+        _id: attempt._id,
+        // Kiểm tra nếu user tồn tại (có thể đã bị xóa)
+        fullName: attempt.user
+          ? attempt.user.fullName
+          : "Người dùng không xác định",
+        // Thay userName bằng email từ user đã populate
+        email: attempt.user ? attempt.user.email : "Email không xác định",
+        score: attempt.score,
+        userAnswers: attempt.userAnswers,
+        startedAt: attempt.startedAt,
+      };
+    });
+
+    res.status(200).json(formattedAttempts);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
