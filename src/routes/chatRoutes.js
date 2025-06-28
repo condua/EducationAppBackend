@@ -23,8 +23,13 @@ router.post("/", async (req, res) => {
           // "X-Title": "EducationApp",
         },
         body: JSON.stringify({
-          model: "deepseek/deepseek-r1:free",
-          messages: [{ role: "user", content: message }],
+          model: "deepseek/deepseek-chat-v3-0324:free",
+          messages: [
+            {
+              role: "user",
+              content: "What is the meaning of life?",
+            },
+          ],
         }),
       }
     );
