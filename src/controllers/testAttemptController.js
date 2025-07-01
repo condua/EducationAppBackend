@@ -172,7 +172,7 @@ exports.getAttemptsForTestInCourse = async (req, res) => {
       test: testId,
     })
       // THAY ĐỔI 1: Populate để lấy 'fullName' và 'email' từ model User.
-      .populate("user", "fullName email")
+      .populate("user", "fullName email avatar")
       // THAY ĐỔI 2: Bỏ 'userName' và chỉ chọn các trường cần thiết.
       .select("user score userAnswers startedAt")
       // 4. Sắp xếp theo điểm giảm dần, sau đó theo thời gian hoàn thành tăng dần
@@ -188,6 +188,7 @@ exports.getAttemptsForTestInCourse = async (req, res) => {
         fullName: attempt.user
           ? attempt.user.fullName
           : "Người dùng không xác định",
+        avatar: attempt.user ? attempt.user.avatar : null,
         // Thay userName bằng email từ user đã populate
         email: attempt.user ? attempt.user.email : "Email không xác định",
         score: attempt.score,
