@@ -1,8 +1,23 @@
 const Course = require("../models/Course");
 const User = require("../models/User");
 
+// ✅ HÀM HELPER: Kiểm tra vai trò Admin
+const checkAdmin = (req, res, next) => {
+  // Giả sử middleware xác thực đã gắn `req.user`
+  if (req.user && req.user.role === "admin") {
+    next(); // Nếu là admin, cho phép đi tiếp
+  } else {
+    res
+      .status(403)
+      .json({ message: "Truy cập bị từ chối. Yêu cầu quyền Admin." });
+  }
+};
+// 🎯 TẠO KHÓA HỌC (CHỈ DÀNH CHO ADMIN)
 exports.createCourse = async (req, res) => {
-  const course = new Course(req.body);
+  // ✅ Gán admin tạo khóa học làm giảng viên (mentor)
+  const courseDataWithMentor = { ...req.body, mentor: req.user.id };
+  const course = new Course(courseDataWithMentor);
+
   try {
     const newCourse = await course.save();
     res.status(201).json(newCourse);
@@ -10,30 +25,39 @@ exports.createCourse = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
+
+// 🎯 SỬA KHÓA HỌC (CHỈ DÀNH CHO ADMIN)
 exports.editCourse = async (req, res) => {
   try {
     const updatedCourse = await Course.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true }
+      { new: true } // Trả về document sau khi đã cập nhật
     );
-    if (!updatedCourse)
+    if (!updatedCourse) {
       return res.status(404).json({ message: "Không tìm thấy khóa học" });
+    }
     res.json(updatedCourse);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
+
+// 🎯 XÓA KHÓA HỌC (CHỈ DÀNH CHO ADMIN)
 exports.deleteCourse = async (req, res) => {
   try {
-    const course = await Course.findByIdAndDelete(req.params.courseId);
-    if (!course)
+    // ✅ Chuẩn hóa thành req.params.id
+    const course = await Course.findByIdAndDelete(req.params.id);
+    if (!course) {
       return res.status(404).json({ message: "Không tìm thấy khóa học" });
-    res.json({ message: "Khóa học đã được xóa" });
+    }
+    // TODO: Xóa courseId khỏi tất cả user đã enrolled
+    res.json({ message: "Khóa học đã được xóa thành công" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 exports.getCourses = async (req, res) => {
   try {
     const courses = await Course.find();
