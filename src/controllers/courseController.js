@@ -12,16 +12,20 @@ const checkAdmin = (req, res, next) => {
       .json({ message: "Truy cập bị từ chối. Yêu cầu quyền Admin." });
   }
 };
-// 🎯 TẠO KHÓA HỌC (CHỈ DÀNH CHO ADMIN)
+// 🎯 TẠO KHÓA HỌC (CHỈ DÀNH CHO ADMIN) - SỬA LẠI FILE NÀY
+
 exports.createCourse = async (req, res) => {
-  // ✅ Gán admin tạo khóa học làm giảng viên (mentor)
-  const courseDataWithMentor = { ...req.body, mentor: req.user.id };
-  const course = new Course(courseDataWithMentor);
+  // Dữ liệu từ frontend (req.body) đã chứa đầy đủ thông tin,
+  // bao gồm cả object 'mentor' đã được định dạng sẵn.
+  // Vì vậy, chúng ta chỉ cần truyền thẳng req.body vào.
+  const course = new Course(req.body);
 
   try {
     const newCourse = await course.save();
     res.status(201).json(newCourse);
   } catch (err) {
+    // Thêm console.log để gỡ lỗi tốt hơn ở phía server
+    console.error("Lỗi khi tạo khóa học:", err);
     res.status(400).json({ message: err.message });
   }
 };
