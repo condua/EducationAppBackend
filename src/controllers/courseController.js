@@ -73,10 +73,10 @@ exports.getCourses = async (req, res) => {
 exports.getCourseById = async (req, res) => {
   try {
     const userId = req.user.id; // Lấy userId từ token
+    const userRole = req.user.role; // Lấy vai trò của người dùng từ token
     const courseId = req.params.id;
 
-    // --- ĐÂY LÀ PHẦN THAY ĐỔI ---
-    // Kiểm tra xem khóa học có tồn tại không và populate chapters, lessons, và tests
+    // --- PHẦN THAY ĐỔI: Bỏ dòng 'select' trong populate tests ---
     const course = await Course.findById(courseId)
       .populate({
         path: "chapters",
@@ -86,17 +86,20 @@ exports.getCourseById = async (req, res) => {
       })
       .populate({
         path: "tests",
-        // (Tùy chọn nhưng khuyến khích) Ẩn đáp án đúng khi populate
-        select:
-          "-questionGroups.group_questions.correctAnswer -questionGroups.group_questions.explanation",
+        // KHÔNG CÓ DÒNG 'select' NÀO Ở ĐÂY NỮA
       });
-    // --------------------------------
+    // -----------------------------------------------------------
 
     if (!course) {
       return res.status(404).json({ message: "Không tìm thấy khóa học" });
     }
 
-    // Kiểm tra xem user có tồn tại không
+    // Nếu là admin, cho phép truy cập luôn mà không cần kiểm tra đăng ký
+    if (userRole === "admin") {
+      return res.json(course);
+    }
+
+    // Nếu không phải admin, tiếp tục kiểm tra quyền truy cập thông thường
     const user = await User.findById(userId);
     if (!user) {
       return res
@@ -104,7 +107,7 @@ exports.getCourseById = async (req, res) => {
         .json({ message: "Bạn không có quyền truy cập khóa học này" });
     }
 
-    // Kiểm tra xem user đã đăng ký khóa học chưa
+    // Kiểm tra xem user đã đăng ký khóa học chưa (chỉ áp dụng cho non-admin)
     if (!user.enrolledCourses.includes(courseId)) {
       return res.status(403).json({ message: "Bạn chưa đăng ký khóa học này" });
     }
