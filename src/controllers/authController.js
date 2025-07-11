@@ -14,22 +14,11 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Tạo Access Token
-const generateAccessToken = (user) => {
+// Tạo JWT Token
+const generateToken = (user) => {
   return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: "1h", // Access token thường có thời gian sống ngắn hơn (ví dụ: 1 giờ)
+    expiresIn: "7d",
   });
-};
-
-// Tạo Refresh Token
-const generateRefreshToken = (user) => {
-  return jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.REFRESH_TOKEN_SECRET, // Sử dụng secret riêng cho refresh token
-    {
-      expiresIn: "30d", // Refresh token có thời gian sống dài hơn (ví dụ: 30 ngày)
-    }
-  );
 };
 
 function getInitials(name) {
@@ -44,7 +33,6 @@ function getRandomColor(email) {
   for (let i = 0; i < email.length; i++) {
     hash = email.charCodeAt(i) + ((hash << 5) - hash);
   }
-  // Sử dụng template literal để tạo chuỗi HSL
   return `hsl(${hash % 360}, 70%, 50%)`;
 }
 
@@ -76,7 +64,6 @@ exports.register = async (req, res) => {
     }
 
     // Kiểm tra mật khẩu hợp lệ
-    // Lưu ý: Mật khẩu có thể không bắt buộc nếu bạn cho phép đăng ký qua Google mà không đặt mật khẩu
     if (!password || password.length < 6) {
       return res
         .status(400)
@@ -98,19 +85,13 @@ exports.register = async (req, res) => {
     const user = new User({
       fullName,
       email,
-      password, // Mật khẩu sẽ được hash bởi pre-save hook trong UserSchema
+      password, // Không cần tự hash
       phone,
       avatar: uploadResult.secure_url,
     });
 
-    // Tạo access token và refresh token
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-
-    // Lưu refresh token vào user
-    user.refreshTokens.push(refreshToken);
-    await user.save(); // Lưu user với refresh token
-
+    await user.save();
+    const token = generateToken(user);
     // ✅ Gửi email chào mừng
     try {
       await sendWelcomeEmail(email, fullName);
@@ -119,10 +100,9 @@ exports.register = async (req, res) => {
       console.error("Gửi email thất bại:", emailErr.message);
       // Có thể bỏ qua lỗi này nếu không quan trọng
     }
-
-    // Trả về user (loại bỏ password và refreshTokens trước khi gửi về client)
-    const { password: _, refreshTokens: __, ...userResponse } = user._doc;
-    res.json({ accessToken, refreshToken, user: userResponse });
+    // Trả về user (loại bỏ password)
+    const { password: _, ...userResponse } = user._doc;
+    res.json({ token, user: userResponse });
   } catch (error) {
     console.error("Lỗi trong quá trình đăng ký:", error);
     res.status(500).json({ message: "Lỗi server", error });
@@ -134,19 +114,16 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Kiểm tra user có tồn tại không và chọn trường password
-    const user = await User.findOne({ email }).select("+password");
+    // Kiểm tra user có tồn tại không
+    const user = await User.findOne({ email });
     if (!user)
       return res.status(400).json({ message: "Tài khoản không tồn tại" });
 
-    // Kiểm tra mật khẩu có tồn tại không (cho tài khoản đăng ký qua email)
+    // Kiểm tra mật khẩu có tồn tại không
     if (!user.password) {
       return res
         .status(400)
-        .json({
-          message:
-            "Tài khoản chưa thiết lập mật khẩu. Vui lòng đăng nhập bằng Google hoặc đặt lại mật khẩu.",
-        });
+        .json({ message: "Tài khoản chưa thiết lập mật khẩu" });
     }
 
     // Kiểm tra mật khẩu có khớp không
@@ -154,20 +131,14 @@ exports.login = async (req, res) => {
 
     if (!isMatch) return res.status(400).json({ message: "Sai mật khẩu" });
 
-    // Tạo access token và refresh token
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
+    // Tạo token
+    const token = generateToken(user);
 
-    // Xóa tất cả refresh token cũ và thêm refresh token mới (cho mỗi lần đăng nhập mới)
-    // Điều này đảm bảo chỉ có một refresh token hợp lệ cho mỗi phiên đăng nhập,
-    // giúp quản lý phiên tốt hơn và có thể buộc đăng xuất các phiên cũ.
-    user.refreshTokens = [refreshToken];
-    await user.save();
+    // Loại bỏ password khi trả về user
+    const userResponse = { ...user._doc };
+    delete userResponse.password;
 
-    // Loại bỏ password và refreshTokens khi trả về user
-    const { password: _, refreshTokens: __, ...userResponse } = user._doc;
-
-    res.json({ accessToken, refreshToken, user: userResponse });
+    res.json({ token, user: userResponse });
   } catch (error) {
     console.error("Lỗi đăng nhập:", error);
     res.status(500).json({ message: "Lỗi server", error });
@@ -189,7 +160,6 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-// 🟢 Đăng nhập bằng Google
 exports.googleLogin = async (req, res) => {
   const { token } = req.body;
 
@@ -220,14 +190,13 @@ exports.googleLogin = async (req, res) => {
         avatarUrl = uploadResult.secure_url;
       }
 
-      // Tạo mật khẩu giả để phù hợp với schema, nhưng sẽ không được sử dụng để đăng nhập trực tiếp
       const fakePassword = Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(fakePassword, 10);
 
       user = await User.create({
         fullName: name,
         email,
-        password: hashedPassword, // Mật khẩu giả được hash
+        password: hashedPassword,
         avatar: avatarUrl,
       });
       // ✅ Gửi email chào mừng chỉ khi đăng nhập lần đầu
@@ -240,13 +209,11 @@ exports.googleLogin = async (req, res) => {
       }
     }
 
-    // Tạo access token và refresh token
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-
-    // Xóa tất cả refresh token cũ và thêm refresh token mới cho phiên Google Login này
-    user.refreshTokens = [refreshToken];
-    await user.save(); // Lưu user với refresh token
+    const accessToken = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
     res.status(200).json({
       message: "Login thành công",
@@ -258,85 +225,9 @@ exports.googleLogin = async (req, res) => {
         role: user.role,
       },
       accessToken,
-      refreshToken,
     });
   } catch (err) {
     console.error(err);
     res.status(401).json({ error: "Google token không hợp lệ" });
-  }
-};
-
-// 🟢 Cấp lại Access Token bằng Refresh Token
-exports.requestRefreshToken = async (req, res) => {
-  const { refreshToken } = req.body;
-
-  if (!refreshToken) {
-    return res.status(401).json({ message: "Không có refresh token" });
-  }
-
-  try {
-    // Xác thực refresh token
-    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-
-    // Tìm người dùng và kiểm tra xem refresh token có trong danh sách của người dùng không
-    const user = await User.findById(decoded.id);
-
-    if (!user || !user.refreshTokens.includes(refreshToken)) {
-      return res
-        .status(403)
-        .json({ message: "Refresh token không hợp lệ hoặc đã bị thu hồi" });
-    }
-
-    // Tạo access token mới
-    const newAccessToken = generateAccessToken(user);
-
-    res.json({ accessToken: newAccessToken });
-  } catch (error) {
-    console.error("Lỗi refresh token:", error);
-    if (error.name === "TokenExpiredError") {
-      return res
-        .status(403)
-        .json({ message: "Refresh token đã hết hạn. Vui lòng đăng nhập lại." });
-    }
-    res.status(403).json({ message: "Refresh token không hợp lệ" });
-  }
-};
-
-// 🟢 Đăng xuất (Xóa refresh token khỏi DB)
-exports.logout = async (req, res) => {
-  const { refreshToken } = req.body; // Client gửi refresh token muốn xóa
-
-  if (!refreshToken) {
-    return res
-      .status(400)
-      .json({ message: "Không có refresh token để đăng xuất" });
-  }
-
-  try {
-    // Xác thực refresh token để tìm người dùng
-    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "Người dùng không tồn tại" });
-    }
-
-    // Lọc bỏ refresh token cụ thể khỏi mảng của người dùng
-    user.refreshTokens = user.refreshTokens.filter(
-      (token) => token !== refreshToken
-    );
-    await user.save(); // Lưu thay đổi vào cơ sở dữ liệu
-
-    res.status(200).json({ message: "Đăng xuất thành công" });
-  } catch (error) {
-    console.error("Lỗi đăng xuất:", error);
-    if (error.name === "TokenExpiredError") {
-      return res
-        .status(403)
-        .json({
-          message: "Refresh token đã hết hạn, không cần đăng xuất thêm",
-        });
-    }
-    res.status(500).json({ message: "Lỗi server khi đăng xuất" });
   }
 };
