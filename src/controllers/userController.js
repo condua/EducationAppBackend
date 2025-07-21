@@ -25,11 +25,32 @@ exports.getUserById = async (req, res) => {
 };
 
 // Lấy tất cả user (Chỉ admin mới được phép)
+// Lấy tất cả user (Chỉ admin mới được phép) - có phân trang
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password");
-    res.json(users);
+    const page = parseInt(req.query.page) || 1; // Mặc định là trang 1
+    const limit = parseInt(req.query.limit) || 10; // Mặc định là 10 bản ghi mỗi trang
+    const skip = (page - 1) * limit;
+
+    const [users, totalUsers] = await Promise.all([
+      User.find()
+        .select("-password")
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 }), // sắp xếp mới nhất trước
+      User.countDocuments(),
+    ]);
+
+    const totalPages = Math.ceil(totalUsers / limit);
+
+    res.status(200).json({
+      currentPage: page,
+      totalPages,
+      totalUsers,
+      users,
+    });
   } catch (error) {
+    console.error("Lỗi khi lấy danh sách user có phân trang:", error);
     res.status(500).json({ message: "Lỗi server", error });
   }
 };
