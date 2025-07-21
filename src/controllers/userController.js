@@ -85,3 +85,96 @@ exports.enrollCourse = async (req, res) => {
     res.status(500).json({ message: "Lỗi server!", error });
   }
 };
+
+// --- ✨ CÁC HÀM DÀNH CHO ADMIN ✨ ---
+
+/**
+ * @desc    Tạo người dùng mới (Admin)
+ * @route   POST /api/users
+ * @access  Private/Admin
+ */
+exports.createUserByAdmin = async (req, res) => {
+  try {
+    const { email, password, fullName, role } = req.body;
+
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: "Email đã tồn tại" });
+    }
+
+    // Mật khẩu sẽ được tự động hash bởi pre-save hook trong User Model
+    const user = await User.create({
+      email,
+      password,
+      fullName,
+      role,
+    });
+
+    if (user) {
+      const userResult = user.toObject();
+      delete userResult.password;
+      res.status(201).json(userResult);
+    } else {
+      res.status(400).json({ message: "Dữ liệu người dùng không hợp lệ" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
+
+/**
+ * @desc    Cập nhật thông tin người dùng (Admin)
+ * @route   PUT /api/users/:id
+ * @access  Private/Admin
+ */
+exports.updateUserByAdmin = async (req, res) => {
+  try {
+    // Admin có thể cập nhật nhiều trường hơn, bao gồm cả `role`
+    const { fullName, email, role, phone, address, gender, birthDate } =
+      req.body;
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
+    }
+
+    // Cập nhật các trường nếu chúng được cung cấp
+    user.fullName = fullName || user.fullName;
+    user.email = email || user.email;
+    user.role = role || user.role;
+    user.phone = phone || user.phone;
+    user.address = address || user.address;
+    user.gender = gender || user.gender;
+    user.birthDate = birthDate || user.birthDate;
+
+    const updatedUser = await user.save();
+
+    const userResult = updatedUser.toObject();
+    delete userResult.password;
+
+    res.json(userResult);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
+
+/**
+ * @desc    Xóa người dùng (Admin)
+ * @route   DELETE /api/users/:id
+ * @access  Private/Admin
+ */
+exports.deleteUserByAdmin = async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
+    }
+
+    // Trả về ID để frontend dễ dàng cập nhật state
+    res.json({ message: "Xóa người dùng thành công", _id: req.params.id });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
