@@ -5,6 +5,7 @@ const {
   updateUserById,
   enrollCourse,
   getCurrentUser,
+  deleteUserById,
 } = require("../controllers/userController");
 const {
   authMiddleware,
@@ -18,4 +19,6 @@ router.get("/", authMiddleware, adminMiddleware, getAllUsers);
 router.get("/me", authMiddleware, getCurrentUser);
 router.put("/:id", authMiddleware, updateUserById);
 router.post("/enroll", authMiddleware, enrollCourse);
+router.delete("/:id", authMiddleware, adminMiddleware, deleteUserById);
+
 module.exports = router;

@@ -26,19 +26,31 @@ exports.getUserById = async (req, res) => {
 
 // Lấy tất cả user (Chỉ admin mới được phép)
 // Lấy tất cả user (Chỉ admin mới được phép) - có phân trang
+// Cập nhật: Lấy tất cả user - có phân trang VÀ TÌM KIẾM
 exports.getAllUsers = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; // Mặc định là trang 1
-    const limit = parseInt(req.query.limit) || 10; // Mặc định là 10 bản ghi mỗi trang
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || ""; // Lấy từ khóa tìm kiếm
     const skip = (page - 1) * limit;
 
+    // Tạo điều kiện tìm kiếm
+    const query = search
+      ? {
+          $or: [
+            { fullName: { $regex: search, $options: "i" } }, // 'i' for case-insensitive
+            { email: { $regex: search, $options: "i" } },
+          ],
+        }
+      : {};
+
     const [users, totalUsers] = await Promise.all([
-      User.find()
+      User.find(query) // Áp dụng điều kiện tìm kiếm
         .select("-password")
         .skip(skip)
         .limit(limit)
-        .sort({ createdAt: -1 }), // sắp xếp mới nhất trước
-      User.countDocuments(),
+        .sort({ createdAt: -1 }),
+      User.countDocuments(query), // Đếm tổng số user khớp với điều kiện
     ]);
 
     const totalPages = Math.ceil(totalUsers / limit);
@@ -50,7 +62,25 @@ exports.getAllUsers = async (req, res) => {
       users,
     });
   } catch (error) {
-    console.error("Lỗi khi lấy danh sách user có phân trang:", error);
+    console.error("Lỗi khi lấy danh sách user:", error);
+    res.status(500).json({ message: "Lỗi server", error });
+  }
+};
+
+// Mới: Xóa người dùng theo ID (Chỉ admin)
+exports.deleteUserById = async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng." });
+    }
+
+    // Tùy chọn: Xóa người dùng khỏi các khóa học, v.v. nếu cần
+
+    res.status(200).json({ message: "Xóa người dùng thành công." });
+  } catch (error) {
+    console.error("Lỗi khi xóa người dùng:", error);
     res.status(500).json({ message: "Lỗi server", error });
   }
 };
