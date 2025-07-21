@@ -86,13 +86,6 @@ exports.enrollCourse = async (req, res) => {
   }
 };
 
-// --- ✨ CÁC HÀM DÀNH CHO ADMIN ✨ ---
-
-/**
- * @desc    Tạo người dùng mới (Admin)
- * @route   POST /api/users
- * @access  Private/Admin
- */
 exports.createUserByAdmin = async (req, res) => {
   try {
     const { email, password, fullName, role } = req.body;
@@ -122,11 +115,6 @@ exports.createUserByAdmin = async (req, res) => {
   }
 };
 
-/**
- * @desc    Cập nhật thông tin người dùng (Admin)
- * @route   PUT /api/users/:id
- * @access  Private/Admin
- */
 exports.updateUserByAdmin = async (req, res) => {
   try {
     // Admin có thể cập nhật nhiều trường hơn, bao gồm cả `role`
@@ -159,11 +147,6 @@ exports.updateUserByAdmin = async (req, res) => {
   }
 };
 
-/**
- * @desc    Xóa người dùng (Admin)
- * @route   DELETE /api/users/:id
- * @access  Private/Admin
- */
 exports.deleteUserByAdmin = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
