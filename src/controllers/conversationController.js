@@ -5,7 +5,20 @@ const Conversation = require("../models/Conversation.js");
 const Message = require("../models/Message.js");
 const User = require("../models/User.js");
 
-// Tìm hoặc tạo một cuộc trò chuyện riêng tư (1-1)
+// *** HÀM MỚI ***
+// GET /api/conversations/users
+// Lấy tất cả người dùng (trừ người dùng hiện tại)
+exports.getAllUser = async (req, res) => {
+  try {
+    const users = await User.find({ _id: { $ne: req.user._id } }).select(
+      "-password"
+    );
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
 // Tìm hoặc tạo một cuộc trò chuyện riêng tư (1-1)
 exports.findOrCreatePrivateConversation = async (req, res) => {
   const { otherUserId } = req.body; // Chỉ cần ID của người dùng kia
@@ -27,11 +40,9 @@ exports.findOrCreatePrivateConversation = async (req, res) => {
     // 1. Kiểm tra xem người dùng kia có tồn tại trong hệ thống không
     const otherUser = await User.findById(otherUserId);
     if (!otherUser) {
-      return res
-        .status(404)
-        .json({
-          message: "The user you are trying to chat with does not exist.",
-        });
+      return res.status(404).json({
+        message: "The user you are trying to chat with does not exist.",
+      });
     }
     // --- KẾT THÚC BƯỚC KIỂM TRA ---
 

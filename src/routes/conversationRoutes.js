@@ -19,9 +19,11 @@ const {
   leaveGroup,
   findOrCreatePrivateConversation,
   createGroupConversation,
+  getAllUser,
 } = require("../controllers/conversationController");
 
 // Lấy tất cả các cuộc trò chuyện của người dùng hiện tại
+router.get("/users", authMiddleware, getAllUser);
 router.get("/", authMiddleware, getConversations);
 
 // Lấy tất cả tin nhắn của một cuộc trò chuyện
