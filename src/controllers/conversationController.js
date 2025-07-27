@@ -186,18 +186,24 @@ exports.sendMessage = async (req, res) => {
           : "file"
         : "text",
       content: messageContent,
-    });
+    }); //
 
     await Conversation.findByIdAndUpdate(conversationId, {
       lastMessage: newMessage._id,
       updatedAt: Date.now(),
-    });
+    }); //
 
-    // SỬA LỖI: populate đúng trường 'fullName' và 'avatar'
     const populatedMessage = await Message.findById(newMessage._id).populate(
       "senderId",
-      "fullName avatar" // Sửa ở đây
-    );
+      "fullName avatar"
+    ); //
+
+    // --- TÍCH HỢP SOCKET.IO ---
+    // 1. Lấy instance của io từ app
+    const io = req.app.get("io");
+    // 2. Gửi sự kiện 'newMessage' đến tất cả client trong phòng có ID là 'conversationId'
+    io.to(conversationId).emit("newMessage", populatedMessage);
+    // --- KẾT THÚC TÍCH HỢP ---
 
     res.status(201).json(populatedMessage);
   } catch (error) {
@@ -236,6 +242,16 @@ exports.inviteToGroup = async (req, res) => {
     )
       // SỬA LỖI: populate đúng trường 'fullName' và 'avatar'
       .populate("memberIds", "fullName avatar email");
+    // --- TÍCH HỢP SOCKET.IO ---
+    const io = req.app.get("io");
+
+    // Gửi sự kiện cập nhật nhóm đến các thành viên hiện tại trong phòng
+    io.to(conversationId).emit("groupUpdated", updatedConversation);
+
+    // Gửi thông báo đến người dùng vừa được mời (nếu họ đang online)
+    // Client cần tham gia một phòng với `userId` của chính mình khi kết nối
+    io.to(userIdToInvite).emit("invitedToGroup", updatedConversation);
+    // --- KẾT THÚC TÍCH HỢP ---
 
     res.json(updatedConversation);
   } catch (error) {
