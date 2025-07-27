@@ -69,6 +69,16 @@ exports.findOrCreatePrivateConversation = async (req, res) => {
       newConversation._id
     ).populate("memberIds", "fullName avatar email");
 
+    // ✅ **THAY ĐỔI 1: Phát sự kiện cho cả hai người dùng**
+    const io = req.app.get("io");
+    populatedConversation.memberIds.forEach((member) => {
+      // Gửi đến phòng riêng của từng người dùng
+      io.to(member._id.toString()).emit(
+        "new conversation",
+        populatedConversation
+      );
+    });
+
     return res.status(201).json(populatedConversation);
   } catch (error) {
     // Bắt lỗi nếu otherUserId không phải là một ObjectId hợp lệ
@@ -106,6 +116,14 @@ exports.createGroupConversation = async (req, res) => {
     const populatedConversation = await Conversation.findById(
       newConversation._id
     ).populate("memberIds", "fullName avatar email");
+
+    const io = req.app.get("io");
+    populatedConversation.memberIds.forEach((member) => {
+      io.to(member._id.toString()).emit(
+        "new conversation",
+        populatedConversation
+      );
+    });
 
     return res.status(201).json(populatedConversation);
   } catch (error) {
