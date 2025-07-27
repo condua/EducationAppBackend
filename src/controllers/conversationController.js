@@ -147,17 +147,40 @@ exports.updateGroupInfo = async (req, res) => {
       return res.status(404).json({ message: "Group not found." });
     }
 
-    // ✅ KIỂM TRA QUYỀN: Chỉ owner mới được sửa
-    if (conversation.ownerId.toString() !== userId.toString()) {
+    // ✅ **SỬA ĐỔI LOGIC KIỂM TRA QUYỀN**
+
+    // 1. Kiểm tra cơ bản: Người dùng phải là thành viên của nhóm.
+    const isMember = conversation.memberIds.some(
+      (memberId) => memberId.toString() === userId.toString()
+    );
+    if (!isMember) {
       return res
         .status(403)
-        .json({ message: "Only the group owner can edit details." });
+        .json({ message: "You are not a member of this group." });
     }
 
-    // Cập nhật các trường được cung cấp
-    if (name) conversation.name = name;
-    if (avatarUrl) conversation.avatarUrl = avatarUrl;
-    if (themeColor) conversation.themeColor = themeColor;
+    // 2. Kiểm tra quyền chủ nhóm: Chỉ yêu cầu nếu người dùng đang cố thay đổi tên hoặc avatar.
+    const isChangingSensitiveInfo = name || avatarUrl;
+    const isOwner = conversation.ownerId.toString() === userId.toString();
+
+    if (isChangingSensitiveInfo && !isOwner) {
+      return res.status(403).json({
+        message: "Only the group owner can change the name or avatar.",
+      });
+    }
+
+    // 3. Cập nhật thông tin hợp lệ
+    // Tại bước này, quyền đã được xác thực.
+    if (name && isOwner) {
+      conversation.name = name;
+    }
+    if (avatarUrl && isOwner) {
+      conversation.avatarUrl = avatarUrl;
+    }
+    if (themeColor) {
+      // Bất kỳ thành viên nào cũng có thể đổi themeColor
+      conversation.themeColor = themeColor;
+    }
 
     await conversation.save();
 
@@ -426,11 +449,9 @@ exports.deleteGroup = async (req, res) => {
       io.to(memberId).emit("group deleted", { conversationId });
     });
 
-    res
-      .status(200)
-      .json({
-        message: "Group and all its messages have been deleted successfully.",
-      });
+    res.status(200).json({
+      message: "Group and all its messages have been deleted successfully.",
+    });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
