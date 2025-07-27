@@ -111,12 +111,16 @@ exports.createGroupConversation = async (req, res) => {
       avatarUrl:
         avatarUrl || "https://placehold.co/100x100/7C83FD/FFFFFF?text=GROUP",
       memberIds: allMembers,
+      ownerId: currentUserId, // ✅ THÊM MỚI: Gán người tạo làm owner
     });
 
     const populatedConversation = await Conversation.findById(
       newConversation._id
-    ).populate("memberIds", "fullName avatar email");
+    )
+      .populate("memberIds", "fullName avatar email")
+      .populate("ownerId", "fullName avatar"); // Populate cả owner
 
+    // Phát sự kiện real-time cho các thành viên
     const io = req.app.get("io");
     populatedConversation.memberIds.forEach((member) => {
       io.to(member._id.toString()).emit(
@@ -126,6 +130,46 @@ exports.createGroupConversation = async (req, res) => {
     });
 
     return res.status(201).json(populatedConversation);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+// --- HÀM MỚI: CẬP NHẬT THÔNG TIN NHÓM ---
+exports.updateGroupInfo = async (req, res) => {
+  const { conversationId } = req.params;
+  const { name, avatarUrl, themeColor } = req.body;
+  const userId = req.user._id;
+
+  try {
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation || conversation.type !== "group") {
+      return res.status(404).json({ message: "Group not found." });
+    }
+
+    // ✅ KIỂM TRA QUYỀN: Chỉ owner mới được sửa
+    if (conversation.ownerId.toString() !== userId.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Only the group owner can edit details." });
+    }
+
+    // Cập nhật các trường được cung cấp
+    if (name) conversation.name = name;
+    if (avatarUrl) conversation.avatarUrl = avatarUrl;
+    if (themeColor) conversation.themeColor = themeColor;
+
+    await conversation.save();
+
+    const updatedConversation = await Conversation.findById(conversationId)
+      .populate("memberIds", "fullName avatar email")
+      .populate("ownerId", "fullName avatar");
+
+    // Gửi sự kiện real-time
+    const io = req.app.get("io");
+    io.to(conversationId).emit("conversation updated", updatedConversation);
+
+    res.json(updatedConversation);
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
@@ -299,6 +343,94 @@ exports.leaveGroup = async (req, res) => {
     });
 
     res.json({ message: "Successfully left the group." });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+// --- HÀM MỚI: XÓA THÀNH VIÊN ---
+exports.removeMemberFromGroup = async (req, res) => {
+  const { conversationId } = req.params;
+  const { memberIdToRemove } = req.body;
+  const userId = req.user._id;
+
+  try {
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation || conversation.type !== "group") {
+      return res.status(404).json({ message: "Group not found." });
+    }
+
+    // ✅ KIỂM TRA QUYỀN: Chỉ owner mới được xóa
+    if (conversation.ownerId.toString() !== userId.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Only the group owner can remove members." });
+    }
+
+    // Owner không thể tự xóa chính mình
+    if (memberIdToRemove === userId.toString()) {
+      return res
+        .status(400)
+        .json({ message: "Owner cannot remove themselves." });
+    }
+
+    const updatedConversation = await Conversation.findByIdAndUpdate(
+      conversationId,
+      { $pull: { memberIds: memberIdToRemove } },
+      { new: true }
+    )
+      .populate("memberIds", "fullName avatar email")
+      .populate("ownerId", "fullName avatar");
+
+    // Gửi sự kiện real-time
+    const io = req.app.get("io");
+    io.to(conversationId).emit("conversation updated", updatedConversation);
+    io.to(memberIdToRemove).emit("removed from group", { conversationId });
+
+    res.json(updatedConversation);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+// --- HÀM MỚI: XÓA NHÓM ---
+exports.deleteGroup = async (req, res) => {
+  const { conversationId } = req.params;
+  const userId = req.user._id;
+
+  try {
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation || conversation.type !== "group") {
+      return res.status(404).json({ message: "Group not found." });
+    }
+
+    // ✅ KIỂM TRA QUYỀN: Chỉ owner mới được xóa nhóm
+    if (conversation.ownerId.toString() !== userId.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Only the group owner can delete the group." });
+    }
+
+    // Lấy danh sách ID thành viên trước khi xóa để gửi sự kiện
+    const memberIds = conversation.memberIds.map((id) => id.toString());
+
+    // 1. Xóa tất cả tin nhắn trong cuộc trò chuyện
+    await Message.deleteMany({ conversationId: conversationId });
+
+    // 2. Xóa chính cuộc trò chuyện đó
+    await Conversation.findByIdAndDelete(conversationId);
+
+    // 3. Gửi sự kiện real-time đến tất cả thành viên
+    const io = req.app.get("io");
+    memberIds.forEach((memberId) => {
+      io.to(memberId).emit("group deleted", { conversationId });
+    });
+
+    res
+      .status(200)
+      .json({
+        message: "Group and all its messages have been deleted successfully.",
+      });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }

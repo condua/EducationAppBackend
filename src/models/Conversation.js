@@ -8,6 +8,13 @@ const conversationSchema = new mongoose.Schema(
     avatarUrl: { type: String }, // For group chats
     memberIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     themeColor: { type: String, default: "#1f2937" },
+      
+    // ✅ THÊM MỚI: Thêm trường ownerId
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+
     lastMessage: {
       _id: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
       type: { type: String, enum: ["text", "image", "file"] },

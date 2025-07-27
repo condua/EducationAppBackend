@@ -20,6 +20,9 @@ const {
   findOrCreatePrivateConversation,
   createGroupConversation,
   getAllUser,
+  updateGroupInfo,
+  removeMemberFromGroup,
+  deleteGroup,
 } = require("../controllers/conversationController");
 
 // Lấy tất cả các cuộc trò chuyện của người dùng hiện tại
@@ -33,7 +36,8 @@ router.get("/:id/messages", authMiddleware, getMessages);
 router.post("/create-or-get", authMiddleware, findOrCreatePrivateConversation);
 // Tạo cuộc trò chuyện nhóm mới
 router.post("/group", authMiddleware, createGroupConversation);
-
+// ✅ THÊM MỚI: Cập nhật thông tin nhóm (chỉ owner)
+router.put("/:conversationId/group", authMiddleware, updateGroupInfo);
 // Gửi một tin nhắn mới (Đã thêm middleware 'upload' để xử lý file)
 router.post(
   "/:conversationId/messages",
@@ -44,9 +48,16 @@ router.post(
 
 // Mời người dùng vào nhóm
 router.post("/:conversationId/invite", authMiddleware, inviteToGroup);
-
+// ✅ THÊM MỚI: Xóa thành viên khỏi nhóm (chỉ owner)
+router.post(
+  "/:conversationId/remove-member",
+  authMiddleware,
+  removeMemberFromGroup
+);
 // Người dùng rời khỏi nhóm
 router.post("/:conversationId/leave", authMiddleware, leaveGroup);
 
+// ✅ THÊM MỚI: Xóa nhóm (chỉ owner)
+router.delete("/:conversationId", authMiddleware, deleteGroup);
 // Exports the router to be used in the main app
 module.exports = router;
