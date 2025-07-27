@@ -192,9 +192,11 @@ exports.sendMessage = async (req, res) => {
       lastMessage: newMessage._id,
       updatedAt: Date.now(),
     }); //
-    const populatedMessage = await Message.findById(newMessage._id)
-      .populate("senderId", "fullName avatar")
-      .populate("conversationId"); // 👈 Thêm dòng này
+    const populatedMessage = await Message.findById(newMessage._id).populate(
+      "senderId",
+      "fullName avatar"
+    );
+    // .populate("conversationId"); // 👈 Thêm dòng này
 
     // --- TÍCH HỢP SOCKET.IO ---
     // 1. Lấy instance của io từ app
