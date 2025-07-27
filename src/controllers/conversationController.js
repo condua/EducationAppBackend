@@ -180,12 +180,10 @@ exports.sendMessage = async (req, res) => {
     if (type === "text") {
       messageContent.text = content;
     } else if (req.file) {
-      // Dành cho loại 'image' hoặc 'file'
-      const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${
-        req.file.filename
-      }`;
+      // ✅ **THAY ĐỔI DUY NHẤT Ở ĐÂY**
+      // URL giờ đây được lấy từ `req.file.path` do Cloudinary cung cấp
       messageContent = {
-        url: fileUrl,
+        url: req.file.path,
         name: req.file.originalname,
         size: req.file.size,
       };
