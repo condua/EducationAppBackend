@@ -192,19 +192,18 @@ exports.sendMessage = async (req, res) => {
       lastMessage: newMessage._id,
       updatedAt: Date.now(),
     }); //
-    // Populate đầy đủ thông tin tin nhắn để gửi đi
-    const populatedMessage = await Message.findById(newMessage._id)
-      .populate("senderId", "fullName avatar email")
-      .populate("conversationId");
+    const populatedMessage = await Message.findById(newMessage._id).populate(
+      "senderId",
+      "fullName avatar"
+    );
+    // .populate("conversationId"); // 👈 Thêm dòng này
 
-    // **✅ BƯỚC QUAN TRỌNG: PHÁT SỰ KIỆN REAL-TIME**
-    // Lặp qua tất cả thành viên trong cuộc trò chuyện và gửi tin nhắn
-    populatedMessage.conversationId.memberIds.forEach((userId) => {
-      // Gửi đến tất cả thành viên ngoại trừ người gửi
-      if (userId.toString() !== senderId.toString()) {
-        req.io.to(userId.toString()).emit("message received", populatedMessage);
-      }
-    });
+    // --- TÍCH HỢP SOCKET.IO ---
+    // 1. Lấy instance của io từ app
+    const io = req.app.get("io");
+    // 2. Gửi sự kiện 'newMessage' đến tất cả client trong phòng có ID là 'conversationId'
+    io.to(conversationId).emit("newMessage", populatedMessage);
+    // --- KẾT THÚC TÍCH HỢP ---
 
     res.status(201).json(populatedMessage);
   } catch (error) {
