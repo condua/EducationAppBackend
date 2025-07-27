@@ -21,7 +21,7 @@ const storage = new CloudinaryStorage({
   },
 });
 
-// Khởi tạo middleware multer với CloudinaryStorage
+// Khởi tạo middleware multer với CloudinaryStorage.
 const upload = multer({
   storage: storage,
   limits: {
