@@ -134,7 +134,6 @@ exports.createGroupConversation = async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
-
 // --- HÀM MỚI: CẬP NHẬT THÔNG TIN NHÓM ---
 exports.updateGroupInfo = async (req, res) => {
   const { conversationId } = req.params;
@@ -147,11 +146,9 @@ exports.updateGroupInfo = async (req, res) => {
       return res.status(404).json({ message: "Group not found." });
     }
 
-    // ✅ **SỬA ĐỔI LOGIC KIỂM TRA QUYỀN**
-
-    // 1. Kiểm tra cơ bản: Người dùng phải là thành viên của nhóm.
+    // 1) Phải là thành viên
     const isMember = conversation.memberIds.some(
-      (memberId) => memberId.toString() === userId.toString()
+      (mId) => mId.toString() === userId.toString()
     );
     if (!isMember) {
       return res
@@ -159,27 +156,25 @@ exports.updateGroupInfo = async (req, res) => {
         .json({ message: "You are not a member of this group." });
     }
 
-    // 2. Kiểm tra quyền chủ nhóm: Chỉ yêu cầu nếu người dùng đang cố thay đổi tên hoặc avatar.
-    const isChangingSensitiveInfo = name || avatarUrl;
     const isOwner = conversation.ownerId.toString() === userId.toString();
 
-    if (isChangingSensitiveInfo && !isOwner) {
-      return res.status(403).json({
-        message: "Only the group owner can change the name or avatar.",
-      });
-    }
-
-    // 3. Cập nhật thông tin hợp lệ
-    // Tại bước này, quyền đã được xác thực.
-    if (name && isOwner) {
+    // 2) Quyền sửa
+    if (name !== undefined) {
+      if (!isOwner) {
+        return res
+          .status(403)
+          .json({ message: "Only the group owner can change the name." });
+      }
       conversation.name = name;
     }
+
     if (avatarUrl !== undefined) {
       // ✅ bất kỳ thành viên nào cũng được đổi avatar
       conversation.avatarUrl = avatarUrl;
     }
-    if (themeColor) {
-      // Bất kỳ thành viên nào cũng có thể đổi themeColor
+
+    if (themeColor !== undefined) {
+      // ✅ bất kỳ thành viên nào cũng được đổi themeColor
       conversation.themeColor = themeColor;
     }
 
@@ -189,7 +184,7 @@ exports.updateGroupInfo = async (req, res) => {
       .populate("memberIds", "fullName avatar email")
       .populate("ownerId", "fullName avatar");
 
-    // Gửi sự kiện real-time
+    // Realtime
     const io = req.app.get("io");
     io.to(conversationId).emit("conversation updated", updatedConversation);
 
