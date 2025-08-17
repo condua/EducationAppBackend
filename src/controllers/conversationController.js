@@ -174,7 +174,8 @@ exports.updateGroupInfo = async (req, res) => {
     if (name && isOwner) {
       conversation.name = name;
     }
-    if (avatarUrl && isOwner) {
+    if (avatarUrl !== undefined) {
+      // ✅ bất kỳ thành viên nào cũng được đổi avatar
       conversation.avatarUrl = avatarUrl;
     }
     if (themeColor) {
