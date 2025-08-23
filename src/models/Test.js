@@ -11,6 +11,7 @@ const QuestionSchema = new mongoose.Schema({
 });
 
 // Schema cho một nhóm câu hỏi (ví dụ: một đoạn văn có nhiều câu hỏi)
+// có thể mở rộng thêm các loại nhóm khác trong tương lai
 const QuestionGroupSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true }, // ID duy nhất cho nhóm
   type: { type: String, default: "passage_group" }, // Loại nhóm câu hỏi
