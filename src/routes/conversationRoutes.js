@@ -54,7 +54,7 @@ router.post(
   authMiddleware,
   removeMemberFromGroup
 );
-// Người dùng rời khỏi nhóm
+// Người dùng rời khỏi nhóm chat
 router.post("/:conversationId/leave", authMiddleware, leaveGroup);
 
 // ✅ THÊM MỚI: Xóa nhóm (chỉ owner)
