@@ -209,12 +209,7 @@ exports.googleLogin = async (req, res) => {
       }
     }
 
-    const accessToken = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "10y" }
-    );
-
+    const accessToken = generateToken(user);
     res.status(200).json({
       message: "Login thành công",
       user: {
