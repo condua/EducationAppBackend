@@ -212,7 +212,7 @@ exports.googleLogin = async (req, res) => {
     const accessToken = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "10y" }
     );
 
     res.status(200).json({
