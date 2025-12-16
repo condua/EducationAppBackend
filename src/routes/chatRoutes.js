@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 const router = express.Router();
+
 router.post("/", async (req, res) => {
   const { message } = req.body;
 
@@ -19,15 +20,15 @@ router.post("/", async (req, res) => {
         headers: {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
-          // "HTTP-Referer": "https://educationappbackend-4inf.onrender.com/",
-          // "X-Title": "EducationApp",
+          // "HTTP-Referer": "https://your-site-url.com/", // tùy chọn
+          // "X-Title": "YourSiteName",                   // tùy chọn
         },
         body: JSON.stringify({
-          model: "deepseek/deepseek-chat-v3-0324:free",
+          model: "tngtech/deepseek-r1t2-chimera:free",
           messages: [
             {
               role: "user",
-              content: "What is the meaning of life?",
+              content: message, // sử dụng nội dung từ client gửi lên
             },
           ],
         }),
@@ -35,8 +36,9 @@ router.post("/", async (req, res) => {
     );
 
     const data = await response.json();
-    console.log("OpenRouter response:", data);
+    console.log("✅ OpenRouter response:", data);
 
+    // Kiểm tra phản hồi từ mô hình
     if (!data.choices || !data.choices[0]?.message?.content) {
       return res.json({ reply: "Không nhận được phản hồi từ mô hình." });
     }
@@ -44,7 +46,7 @@ router.post("/", async (req, res) => {
     const reply = data.choices[0].message.content;
     res.json({ reply });
   } catch (error) {
-    console.error("OpenRouter error:", error);
+    console.error("❌ OpenRouter error:", error);
     res.status(500).json({ reply: "Lỗi server hoặc mô hình AI." });
   }
 });

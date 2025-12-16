@@ -65,6 +65,14 @@ const UserSchema = new mongoose.Schema(
         },
       },
     ],
+    otp: {
+      type: String,
+      required: false, // Không bắt buộc lúc tạo user
+    },
+    otpExpires: {
+      type: Date,
+      required: false,
+    },
     // refreshTokens: [String],
   },
   { timestamps: true }
