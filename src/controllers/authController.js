@@ -6,6 +6,7 @@ const bcrypt = require("bcryptjs");
 const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const sendWelcomeEmail = require("../utils/sendWelcomeEmail");
+const sendEmail = require("../utils/sendEmail");
 require("dotenv").config();
 
 cloudinary.config({
@@ -145,7 +146,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// 🟢 Quên mật khẩu (Chưa triển khai gửi email)
+// 🟢 [CẬP NHẬT] Quên mật khẩu - Gửi OTP
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -153,10 +154,95 @@ exports.forgotPassword = async (req, res) => {
 
     if (!user) return res.status(400).json({ message: "Email không tồn tại" });
 
-    res.json({ message: "Vui lòng kiểm tra email để đặt lại mật khẩu" });
+    // Tạo mã OTP 6 số
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Lưu OTP và thời gian hết hạn (5 phút)
+    user.otp = otp;
+    user.otpExpires = Date.now() + 5 * 60 * 1000;
+    await user.save();
+
+    // Nội dung email
+    const subject = "Mã xác thực đặt lại mật khẩu";
+    const htmlContent = `
+       <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+        <h2 style="color: teal;">Yêu cầu đặt lại mật khẩu</h2>
+        <p>Xin chào <strong>${user.fullName}</strong>,</p>
+        <p>Mã xác thực của bạn là:</p>
+        <h1 style="color: teal; letter-spacing: 5px;">${otp}</h1>
+        <p>Mã này có hiệu lực trong vòng <strong>5 phút</strong>.</p>
+        <p style="color: #666; font-size: 12px;">Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
+      </div>
+    `;
+
+    // Gửi email
+    await sendEmail(email, subject, htmlContent);
+
+    res.json({ message: "Mã xác thực đã được gửi tới email của bạn." });
   } catch (error) {
     console.error("Lỗi quên mật khẩu:", error);
     res.status(500).json({ message: "Lỗi server", error });
+  }
+};
+
+// 🟢 [MỚI] Xác thực OTP
+exports.verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "Người dùng không tồn tại." });
+    }
+
+    // Kiểm tra OTP và thời hạn
+    if (user.otp !== otp) {
+      return res.status(400).json({ message: "Mã xác thực không đúng." });
+    }
+
+    if (user.otpExpires < Date.now()) {
+      return res.status(400).json({ message: "Mã xác thực đã hết hạn." });
+    }
+
+    res.status(200).json({ message: "Xác thực thành công." });
+  } catch (error) {
+    console.error("Lỗi xác thực OTP:", error);
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
+
+// 🟢 [MỚI] Đặt lại mật khẩu
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "Người dùng không tồn tại." });
+    }
+
+    // Kiểm tra lại OTP lần nữa để bảo mật
+    if (user.otp !== code || user.otpExpires < Date.now()) {
+      return res
+        .status(400)
+        .json({ message: "Phiên xác thực không hợp lệ hoặc đã hết hạn." });
+    }
+
+    // Cập nhật mật khẩu (Pre-save hook trong Model sẽ tự hash)
+    user.password = newPassword;
+
+    // Xóa OTP
+    user.otp = undefined;
+    user.otpExpires = undefined;
+
+    await user.save();
+
+    res
+      .status(200)
+      .json({ message: "Đổi mật khẩu thành công. Vui lòng đăng nhập lại." });
+  } catch (error) {
+    console.error("Lỗi đặt lại mật khẩu:", error);
+    res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
 
