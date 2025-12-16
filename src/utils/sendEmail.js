@@ -15,7 +15,7 @@ const sendEmail = async (email, subject, htmlContent) => {
 
     // 2. Cấu hình nội dung email
     const mailOptions = {
-      from: `"Support Team" <${process.env.EMAIL_USER}>`, // Tên người gửi
+      from: `"MLPA Support Team" <${process.env.EMAIL_USER}>`, // Tên người gửi
       to: email, // Email người nhận
       subject: subject, // Tiêu đề
       html: htmlContent, // Nội dung dạng HTML

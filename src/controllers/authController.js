@@ -164,17 +164,133 @@ exports.forgotPassword = async (req, res) => {
 
     // Nội dung email
     const subject = "Mã xác thực đặt lại mật khẩu";
-    const htmlContent = `
-       <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
-        <h2 style="color: teal;">Yêu cầu đặt lại mật khẩu</h2>
-        <p>Xin chào <strong>${user.fullName}</strong>,</p>
-        <p>Mã xác thực của bạn là:</p>
-        <h1 style="color: teal; letter-spacing: 5px;">${otp}</h1>
-        <p>Mã này có hiệu lực trong vòng <strong>5 phút</strong>.</p>
-        <p style="color: #666; font-size: 12px;">Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
-      </div>
-    `;
+    // Lấy thời gian hiện tại định dạng Việt Nam
+    // Lấy thời gian hiện tại định dạng Việt Nam
+    const requestTime = new Date().toLocaleString("vi-VN", {
+      timeZone: "Asia/Ho_Chi_Minh",
+    });
 
+    const htmlContent = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mã xác thực OTP</title>
+    <style>
+      /* --- Reset & Basics --- */
+      body { margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #334155; }
+      .wrapper { width: 100%; background-color: #f3f4f6; padding-bottom: 40px; }
+      .main-content { background-color: #ffffff; margin: 0 auto; max-width: 600px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
+      
+      /* --- Header Design --- */
+      .header { background-color: #ffffff; padding: 25px 30px; border-bottom: 1px solid #e2e8f0; }
+      .logo-img { width: 48px; height: auto; display: block; }
+      .brand-name { font-size: 16px; font-weight: 800; color: #0d9488; line-height: 1.2; margin: 0; letter-spacing: 0.5px; text-transform: uppercase; }
+      .brand-slogan { font-size: 11px; color: #64748b; margin: 2px 0 0 0; font-weight: 500; }
+      
+      /* --- Body & Components --- */
+      .body-text { padding: 35px 30px; line-height: 1.6; font-size: 15px; }
+      .otp-container { margin: 30px 0; text-align: center; }
+      .otp-box { display: inline-block; background-color: #f0fdfa; border: 3px dashed #ccfbf1; border-radius: 12px; padding: 15px 40px; min-width: 160px; }
+      .otp-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #0d9488; font-weight: 700; margin-bottom: 5px; display: block; }
+      .otp-code { font-size: 32px; font-weight: 800; color: #0f766e; letter-spacing: 6px; margin: 0; font-family: monospace; }
+      .warning-box { background-color: #fff7ed; border-left: 4px solid #f97316; padding: 15px; border-radius: 4px; font-size: 13px; color: #9a3412; margin-top: 25px; }
+      
+      /* --- Footer --- */
+      .footer { background-color: #1e293b; padding: 30px; text-align: center; font-size: 12px; color: #94a3b8; }
+      .footer a { color: #cbd5e1; text-decoration: none; margin: 0 5px; }
+      .footer-divider { margin: 10px 0; border-top: 1px solid #334155; }
+      .company-info { margin-bottom: 15px; line-height: 1.5; }
+
+      /* --- 🟢 MOBILE RESPONSIVE LOGIC --- */
+      /* Mặc định desktop text hiện, mobile text ẩn */
+      .brand-text-mobile { display: none; font-size: 20px; } 
+
+      /* Khi màn hình nhỏ hơn 600px */
+      @media only screen and (max-width: 600px) {
+        .brand-text-desktop { display: none !important; }
+        .brand-text-mobile { display: block !important; }
+        
+        /* Tinh chỉnh padding cho mobile đẹp hơn */
+        .header { padding: 20px 15px; }
+        .body-text { padding: 25px 20px; }
+        .logo-img { width: 40px; } /* Logo nhỏ lại chút */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <br>
+      <div class="main-content">
+        
+        <div class="header">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+              <td style="width: 55px; vertical-align: middle;">
+                  <img src="https://www.mlpa.edu.vn/assets/logo-kvWYVhLQ.png" alt="MLPA Logo" class="logo-img">
+              </td>
+              
+              <td style="vertical-align: middle;">
+                <p class="brand-name">
+                  <span class="brand-text-desktop">MLPA Education & Technology</span>
+                  
+                  <span class="brand-text-mobile" style="display: none; mso-hide: all;">MLPA</span>
+                </p>
+                <p class="brand-slogan">Công ty Giáo dục và Công nghệ MLPA</p>
+              </td>
+
+              <td style="text-align: right; vertical-align: middle;">
+                <a href="https://www.mlpa.edu.vn" style="font-size: 12px; color: #0d9488; text-decoration: none; font-weight: 600;">Home &rarr;</a>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="body-text">
+          <p>Xin chào <strong>${user.fullName}</strong>,</p>
+          
+          <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Để đảm bảo an toàn, vui lòng xác thực bằng mã dưới đây:</p>
+          
+          <div class="otp-container">
+            <div class="otp-box">
+              <span class="otp-label">Mã xác thực</span>
+              <div class="otp-code">${otp}</div>
+            </div>
+          </div>
+          
+          <div style="text-align: center; font-size: 13px; color: #64748b; margin-bottom: 25px;">
+            Mã có hiệu lực trong vòng <strong>05 phút</strong>.
+          </div>
+
+          <div class="warning-box">
+            <strong>⚠️ Nếu bạn không yêu cầu thay đổi này:</strong><br>
+            Vui lòng không chia sẻ mã này cho bất kỳ ai. Kẻ xấu có thể đang cố gắng truy cập vào tài khoản của bạn. Hãy đổi mật khẩu ngay nếu nghi ngờ.
+          </div>
+          
+          <p style="margin-top: 30px;">Trân trọng,<br><strong>Ban quản trị MLPA</strong></p>
+        </div>
+
+        <div class="footer">
+          <div class="company-info">
+            <strong>GIÁO DỤC VÀ CÔNG NGHỆ MLPA</strong><br>
+            <br> Email: noreply.mlpa.edu@gmail.com
+          </div>
+          
+          <div class="footer-divider"></div>
+          
+          <p style="margin-top: 15px; color: #64748b; font-size: 11px;">
+            Email này được gửi tự động từ hệ thống MLPA. 
+            <br/><br/>
+            Vui lòng không trả lời email này.
+          </p>
+        </div>
+      </div>
+      <br>
+    </div>
+  </body>
+  </html>
+`;
     // Gửi email
     await sendEmail(email, subject, htmlContent);
 
