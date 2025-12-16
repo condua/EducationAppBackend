@@ -150,22 +150,25 @@ exports.login = async (req, res) => {
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+    console.log("👉 [DEBUG 1] Bắt đầu request Forgot Password cho:", email);
+
+    // 1. Kiểm tra DB (Nếu log dừng ở đây -> Lỗi kết nối MongoDB)
     const user = await User.findOne({ email });
+    if (!user) {
+      console.log("❌ [DEBUG 1.1] Email không tồn tại");
+      return res.status(400).json({ message: "Email không tồn tại" });
+    }
+    console.log("✅ [DEBUG 2] Tìm thấy user:", user._id);
 
-    if (!user) return res.status(400).json({ message: "Email không tồn tại" });
-
-    // Tạo mã OTP 6 số
+    // 2. Tạo và Lưu OTP (Nếu log dừng ở đây -> Lỗi ghi DB)
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    // Lưu OTP và thời gian hết hạn (5 phút)
     user.otp = otp;
     user.otpExpires = Date.now() + 5 * 60 * 1000;
     await user.save();
+    console.log("✅ [DEBUG 3] Đã lưu OTP vào DB:", otp);
 
     // Nội dung email
     const subject = "Mã xác thực đặt lại mật khẩu";
-    // Lấy thời gian hiện tại định dạng Việt Nam
-    // Lấy thời gian hiện tại định dạng Việt Nam
     const requestTime = new Date().toLocaleString("vi-VN", {
       timeZone: "Asia/Ho_Chi_Minh",
     });
@@ -291,13 +294,30 @@ exports.forgotPassword = async (req, res) => {
   </body>
   </html>
 `;
-    // Gửi email
-    await sendEmail(email, subject, htmlContent);
+    // 3. Gửi Email (Nếu log dừng ở đây -> Lỗi Nodemailer/Mạng/Env)
+    console.log("⏳ [DEBUG 4] Đang gọi hàm sendEmail...");
+
+    // Thêm timeout để tránh việc load mãi mãi nếu gửi mail bị treo
+    const sendMailPromise = sendEmail(email, subject, htmlContent);
+
+    // Đua giữa việc gửi mail và timeout 10 giây
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Gửi email quá lâu (Timeout)")), 10000)
+    );
+
+    await Promise.race([sendMailPromise, timeoutPromise]);
+
+    console.log("✅ [DEBUG 5] Gửi email thành công!");
 
     res.json({ message: "Mã xác thực đã được gửi tới email của bạn." });
   } catch (error) {
-    console.error("Lỗi quên mật khẩu:", error);
-    res.status(500).json({ message: "Lỗi server", error });
+    console.error("❌ [ERROR LỖI Ở ĐÂY]:", error.message);
+
+    // Trả về lỗi rõ ràng để Frontend không bị treo
+    res.status(500).json({
+      message: "Lỗi hệ thống khi xử lý yêu cầu.",
+      debugError: error.message, // Chỉ dùng để debug, xóa khi chạy thật
+    });
   }
 };
 
