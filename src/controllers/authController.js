@@ -77,7 +77,7 @@ exports.register = async (req, res) => {
       cloudinary.uploader
         .upload_stream(
           { folder: "avatars", public_id: email.replace(/[@.]/g, "_") },
-          (error, result) => (error ? reject(error) : resolve(result))
+          (error, result) => (error ? reject(error) : resolve(result)),
         )
         .end(avatarBuffer);
     });
@@ -93,14 +93,7 @@ exports.register = async (req, res) => {
 
     await user.save();
     const token = generateToken(user);
-    // ✅ Gửi email chào mừng
-    try {
-      await sendWelcomeEmail(email, fullName);
-      console.log("Đã gửi email chào mừng");
-    } catch (emailErr) {
-      console.error("Gửi email thất bại:", emailErr.message);
-      // Có thể bỏ qua lỗi này nếu không quan trọng
-    }
+
     // Trả về user (loại bỏ password)
     const { password: _, ...userResponse } = user._doc;
     res.json({ token, user: userResponse });
@@ -385,7 +378,7 @@ exports.googleLogin = async (req, res) => {
           cloudinary.uploader
             .upload_stream(
               { folder: "avatars", public_id: email.replace(/[@.]/g, "_") },
-              (error, result) => (error ? reject(error) : resolve(result))
+              (error, result) => (error ? reject(error) : resolve(result)),
             )
             .end(avatarBuffer);
         });
