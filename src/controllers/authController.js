@@ -6,7 +6,8 @@ const bcrypt = require("bcryptjs");
 const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const sendWelcomeEmail = require("../utils/sendWelcomeEmail");
-const sendEmail = require("../utils/sendEmail");
+// const sendEmail = require("../utils/sendEmail");
+const sendEmail = require("../controllers/sendEmailController");
 require("dotenv").config();
 
 cloudinary.config({
