@@ -4,7 +4,7 @@ require("dotenv").config();
 
 const sendEmail = async (email, subject, htmlContent) => {
   try {
-    // 🟢 CẤU HÌNH MỚI CHO RENDER
+    // 🟢 CẤU HÌNH MỚI CHO RENDER --
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com", // Host chính xác của Gmail
       port: 465, // Port SSL (Thường không bị chặn trên Cloud)
