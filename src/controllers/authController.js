@@ -335,7 +335,7 @@ exports.resetPassword = async (req, res) => {
     if (user.otp !== code || user.otpExpires < Date.now()) {
       return res
         .status(400)
-        .json({ message: "Phiên xác thực không hợp lệ hoặc đã hết hạn." });
+        .json({ message: "Mã OTP không hợp lệ hoặc đã hết hạn." });
     }
 
     // Cập nhật mật khẩu (Pre-save hook trong Model sẽ tự hash)
