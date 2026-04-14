@@ -148,8 +148,8 @@ exports.forgotPassword = async (req, res) => {
 
     if (!user) return res.status(400).json({ message: "Email không tồn tại" });
 
-    // Tạo mã OTP 6 số
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Tạo mã OTP 4 số
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
     // Lưu OTP và thời gian hết hạn (5 phút)
     user.otp = otp;
