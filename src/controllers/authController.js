@@ -4,7 +4,8 @@ const { createCanvas } = require("canvas");
 const cloudinary = require("cloudinary").v2;
 const bcrypt = require("bcryptjs");
 const { OAuth2Client } = require("google-auth-library");
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+//const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client();
 const sendWelcomeEmail = require("../utils/sendWelcomeEmail");
 // const sendEmail = require("../utils/sendEmail");
 const sendEmail = require("../controllers/sendEmailController");
@@ -362,7 +363,10 @@ exports.googleLogin = async (req, res) => {
   try {
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: [
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_ID_ANDROID,
+      ],
     });
 
     const payload = ticket.getPayload();
