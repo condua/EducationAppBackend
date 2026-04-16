@@ -396,13 +396,13 @@ exports.googleLogin = async (req, res) => {
         avatar: avatarUrl,
       });
       // ✅ Gửi email chào mừng chỉ khi đăng nhập lần đầu
-      try {
-        await sendWelcomeEmail(user.email, user.fullName);
-        console.log("Đã gửi email chào mừng");
-      } catch (emailErr) {
-        console.error("Gửi email thất bại:", emailErr.message);
-        // Có thể bỏ qua lỗi này nếu không quan trọng
-      }
+      // try {
+      //   await sendWelcomeEmail(user.email, user.fullName);
+      //   console.log("Đã gửi email chào mừng");
+      // } catch (emailErr) {
+      //   console.error("Gửi email thất bại:", emailErr.message);
+      //   // Có thể bỏ qua lỗi này nếu không quan trọng
+      // }
     }
 
     const accessToken = generateToken(user);
