@@ -23,7 +23,19 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+// Cấu hình CORS để Frontend (mlpa.edu.vn) có thể gọi Backend (Render)
+app.use(
+  cors({
+    origin: ["https://mlpa.edu.vn", "https://www.mlpa.edu.vn"],
+    credentials: true,
+  }),
+);
+
+// Cấu hình Header cho phép Google Popup
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  next();
+});
 app.use(express.json());
 
 // Routes
