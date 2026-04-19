@@ -375,7 +375,7 @@ exports.googleLogin = async (req, res) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-      // 🟡 Xử lý avatar nếu User chưa tồn tại
+      // 🟡 Nếu Google không có avatar, tự tạo avatar với canvas
       let avatarUrl = picture;
       if (!picture) {
         const avatarBuffer = await generateAvatar(name, email);
@@ -390,7 +390,6 @@ exports.googleLogin = async (req, res) => {
         avatarUrl = uploadResult.secure_url;
       }
 
-      // Tạo mật khẩu giả định (Vì schema yêu cầu hoặc để có thể đổi sau này)
       const fakePassword = Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(fakePassword, 10);
 
@@ -400,28 +399,30 @@ exports.googleLogin = async (req, res) => {
         password: hashedPassword,
         avatar: avatarUrl,
       });
-
-      // Gửi email chào mừng (tùy chọn)
-      // await sendWelcomeEmail(user.email, user.fullName).catch(console.error);
+      // ✅ Gửi email chào mừng chỉ khi đăng nhập lần đầu
+      // try {
+      //   await sendWelcomeEmail(user.email, user.fullName);
+      //   console.log("Đã gửi email chào mừng");
+      // } catch (emailErr) {
+      //   console.error("Gửi email thất bại:", emailErr.message);
+      //   // Có thể bỏ qua lỗi này nếu không quan trọng
+      // }
     }
 
-    // 🟢 ĐỒNG BỘ LOGIC VỚI HÀM LOGIN
-    // 1. Tạo token (Sử dụng cùng hàm generateToken)
     const accessToken = generateToken(user);
-
-    // 2. Loại bỏ password khi trả về (Sử dụng cách thức tương tự hàm login)
-    const userResponse = { ...user._doc };
-    delete userResponse.password;
-
-    // 3. Trả về format đồng nhất
     res.status(200).json({
-      token: accessToken, // Hoặc accessToken tùy theo phía Frontend đang dùng key nào
-      user: userResponse,
+      message: "Login thành công",
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        avatar: user.avatar,
+        role: user.role,
+      },
+      accessToken,
     });
   } catch (err) {
-    console.error("Lỗi đăng nhập Google:", err);
-    res
-      .status(401)
-      .json({ message: "Google token không hợp lệ hoặc lỗi server" });
+    console.error(err);
+    res.status(401).json({ error: "Google token không hợp lệ" });
   }
 };
