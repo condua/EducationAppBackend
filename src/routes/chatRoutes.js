@@ -1,6 +1,7 @@
 const express = require("express");
 const fetch = require("node-fetch");
 const dotenv = require("dotenv");
+const OpenAI = require("openai");
 
 dotenv.config();
 const router = express.Router();
