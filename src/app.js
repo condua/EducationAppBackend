@@ -27,7 +27,11 @@ const app = express();
 // Cấu hình CORS để Frontend (mlpa.edu.vn) có thể gọi Backend (Render)
 app.use(
   cors({
-    origin: ["https://mlpa.edu.vn", "https://www.mlpa.edu.vn"],
+    origin: [
+      "https://mlpa.edu.vn",
+      "https://www.mlpa.edu.vn",
+      "http://localhost:5173",
+    ],
     credentials: true,
   }),
 );
