@@ -31,6 +31,7 @@ app.use(
       "https://mlpa.edu.vn",
       "https://www.mlpa.edu.vn",
       "http://localhost:5173",
+      "https://educationappbackend-4inf.onrender.com",
     ],
     credentials: true,
   }),
