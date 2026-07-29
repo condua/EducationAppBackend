@@ -71,10 +71,22 @@ ${systemPrompt}`,
       reply: completion.choices[0].message.content,
     });
   } catch (error) {
-    console.error("OpenAI Error:", error);
+    console.error("========== OPENAI ERROR ==========");
+    console.error(error);
+
+    console.error("Status:", error.status);
+    console.error("Message:", error.message);
+    console.error("Code:", error.code);
+    console.error("Cause:", error.cause);
+
+    if (error.response) {
+      console.error(error.response.data);
+    }
 
     return res.status(500).json({
-      error: "Lỗi kết nối OpenAI",
+      error: error.message,
+      status: error.status,
+      code: error.code,
     });
   }
 });
